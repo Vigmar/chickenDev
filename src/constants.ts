@@ -7,7 +7,7 @@ export const COL_MONEY = [50,100,200,500,700,900,1200];
 
 export const ROAD_COLS = 7;
 export const ROAD_ROWS = 6;
-export const ROAD_CELL_W = 128;
+export const ROAD_CELL_W = 127;
 export const ROAD_CELL_H = 80;
 export const ROAD_START_X = 182;
 
