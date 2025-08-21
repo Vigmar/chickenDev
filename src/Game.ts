@@ -84,7 +84,6 @@ export default class MainGame extends Phaser.Scene {
   bankUI3: Phaser.GameObjects.Sprite;
   moneyBalance: Phaser.GameObjects.Container;
 
-
   finalContainer: Phaser.GameObjects.Container;
   finalBG: Phaser.GameObjects.Sprite;
   finalHeader: Phaser.GameObjects.Sprite;
@@ -98,6 +97,7 @@ export default class MainGame extends Phaser.Scene {
   centerX: number;
   scaleValue: number;
   activeRoad: number;
+  balance: number = 0;
   isJumping: boolean = false;
   isTutorial: boolean = false;
   isWaitStart: boolean = true;
@@ -497,10 +497,16 @@ export default class MainGame extends Phaser.Scene {
         this.startResultScreen();
     });
 
+
+    
+
     this.headerSprite = this.add
       .sprite(this.centerX, 20, "main", "header.png")
       .setOrigin(0.5, 0)
       .setScale(0.66);
+
+    this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,0,0,0);
+            
 
     this.topBg = this.add.graphics();
     this.topBg.fillStyle(0x000000, 1);
@@ -516,7 +522,9 @@ export default class MainGame extends Phaser.Scene {
     this.uiGroup.add(this.goBtn);
     this.uiGroup.add(this.cashoutBtn);
     this.uiGroup.add(this.headerSprite);
+    this.uiGroup.add(this.headBalance);  
     this.roadGroup.y = 100;
+
 
     const tutorialScale =
       this.scale.width > this.scale.height
@@ -735,7 +743,35 @@ export default class MainGame extends Phaser.Scene {
             },
           });
         } else {
-          if (this.activeRoad == 3) this.onThirdStep();
+
+          if (this.activeRoad == 1)
+          {
+            this.headBalance.destroy();
+            this.cashBalance = this.createRouletteCounter(this.cashoutBtn.x-30,this.cashoutBtn.y+60,0.4,0,171,1000);
+            this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,0,171,1000);
+            this.uiGroup.add(this.cashBalance);
+            this.uiGroup.add(this.headBalance);
+          }
+          else
+          {
+            this.cashBalance.destroy();
+            this.headBalance.destroy();
+            this.cashBalance = this.createRouletteCounter(this.cashoutBtn.x-30,this.cashoutBtn.y+60,0.4,171,373,1000);
+            this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,171,373,1000);
+            this.uiGroup.add(this.cashBalance);
+            this.uiGroup.add(this.headBalance);
+          }
+
+          if (this.activeRoad == 3) 
+          {
+            this.cashBalance.destroy();
+            this.headBalance.destroy();
+            this.cashBalance = this.createRouletteCounter(this.cashoutBtn.x-30,this.cashoutBtn.y+60,0.4,373,610,1000);
+            this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,373,610,1000);
+            this.uiGroup.add(this.cashBalance);
+            this.uiGroup.add(this.headBalance);
+            this.onThirdStep();
+          }
 
           if (this.activeRoad < 4) this.chicken.play("idle");
           else {
@@ -1192,6 +1228,8 @@ export default class MainGame extends Phaser.Scene {
     updateDisplay(currentVal);
 
     // Анимация
+    if (duration>0)
+    {
     const timer = this.time.addEvent({
         delay: 16.6, // ~60 FPS
         callback: () => {
@@ -1207,6 +1245,7 @@ export default class MainGame extends Phaser.Scene {
         },
         repeat: Math.floor(totalFrames)
     });
+    }
 
 
 
