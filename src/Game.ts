@@ -62,6 +62,7 @@ export default class MainGame extends Phaser.Scene {
   headerText: Phaser.GameObjects.Text;
   cover: Phaser.GameObjects.Rectangle;
   coinEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+  loseEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
   endEffectAnim: Phaser.GameObjects.Sprite;
   endPanel: Phaser.GameObjects.Sprite;
   endPanelContainer: Phaser.GameObjects.Container;
@@ -73,6 +74,7 @@ export default class MainGame extends Phaser.Scene {
 
   headBalance: Phaser.GameObjects.Container;
   cashBalance: Phaser.GameObjects.Container;
+  soundIcon: Phaser.GameObjects.Sprite;
 
   chicken: Phaser.GameObjects.Sprite;
   ghoust: Phaser.GameObjects.Sprite;
@@ -101,9 +103,13 @@ export default class MainGame extends Phaser.Scene {
   isJumping: boolean = false;
   isTutorial: boolean = false;
   isWaitStart: boolean = true;
+  isSoundEnable: boolean = true;
 
   preload() {
-
+    this.load.audio("jump", "sounds/01_jump.mp3");
+    this.load.audio("win", "sounds/02_win.mp3");
+    this.load.audio("bank1", "sounds/03_bank1.mp3");
+    this.load.audio("bank3", "sounds/03_bank3.mp3");
     this.load.image("packshot_arca", "/assets/packshot_arca.png");
     this.load.image("bg4", "/assets/background_4.png");
     this.load.image("bg3", "/assets/background_3.png");
@@ -139,7 +145,7 @@ export default class MainGame extends Phaser.Scene {
     this.gameContainer.add(this.roadGroup);
     this.gameContainer.add(this.uiGroup);
 
-    this.gameContainer.setScale(this.scale.height / 850);
+    this.gameContainer.setScale(this.scale.height / 900);
 
     const uiCamera = this.cameras
       .add(0, 0, this.scale.width, this.scale.height)
@@ -447,7 +453,7 @@ export default class MainGame extends Phaser.Scene {
     // Запуск анимации ожидания по умолчанию
     this.chicken.play("idle");
 
-    this.centerX = (0.5 * this.scale.width * 850) / this.scale.height;
+    this.centerX = (0.5 * this.scale.width * 900) / this.scale.height;
 
     this.uiPanel = this.add
       .sprite(
@@ -497,16 +503,40 @@ export default class MainGame extends Phaser.Scene {
         this.startResultScreen();
     });
 
-
-    
-
     this.headerSprite = this.add
       .sprite(this.centerX, 20, "main", "header.png")
       .setOrigin(0.5, 0)
       .setScale(0.66);
 
-    this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,0,0,0);
-            
+    this.headBalance = this.createRouletteCounter(
+      this.centerX + 30,
+      50,
+      0.3,
+      0,
+      0,
+      0,
+      false
+    );
+
+    this.soundIcon = this.add
+      .sprite(5, this.scale.height-5, "main", "sound_button.png")
+      .setOrigin(0, 1)
+      .setScale(0.5);
+
+      this.soundIcon.setInteractive();
+
+     this.soundIcon.on("pointerdown", (pointer) => {
+        this.isSoundEnable = !this.isSoundEnable;
+        if (this.isSoundEnable)
+        {
+          this.soundIcon.setTexture("main","sound_button.png");
+        }
+        else
+        {
+          this.soundIcon.setTexture("main","sound_button_off.png");
+        }
+    });
+      
 
     this.topBg = this.add.graphics();
     this.topBg.fillStyle(0x000000, 1);
@@ -522,9 +552,9 @@ export default class MainGame extends Phaser.Scene {
     this.uiGroup.add(this.goBtn);
     this.uiGroup.add(this.cashoutBtn);
     this.uiGroup.add(this.headerSprite);
-    this.uiGroup.add(this.headBalance);  
+    this.uiGroup.add(this.headBalance);
+    //this.uiGroup.add(this.soundIcon);
     this.roadGroup.y = 100;
-
 
     const tutorialScale =
       this.scale.width > this.scale.height
@@ -560,7 +590,7 @@ export default class MainGame extends Phaser.Scene {
         this.cameras.main.width, // ширина
         this.cameras.main.height, // высота
         0x000000, // цвет (любой, мы сделаем прозрачным)
-        0.3 // альфа = 0 → полностью прозрачный
+        0.5 // альфа = 0 → полностью прозрачный
       )
       .setOrigin(0.5)
       .setInteractive() // делаем его интерактивным
@@ -582,6 +612,7 @@ export default class MainGame extends Phaser.Scene {
 
     //this.startMoneyAddScreen();
     //this.startFinalScreen();
+    //this.startPush();
   }
 
   onThirdStep() {
@@ -679,6 +710,9 @@ export default class MainGame extends Phaser.Scene {
     const startY = this.chicken.y;
     const jumpHeight = 50;
 
+    if (this.isSoundEnable)
+        this.sound.play("jump");
+
     if (this.activeRoad < 3) {
       this.tweens.add({
         targets: this.fences[this.activeRoad],
@@ -743,31 +777,77 @@ export default class MainGame extends Phaser.Scene {
             },
           });
         } else {
-
-          if (this.activeRoad == 1)
-          {
+          if (this.activeRoad == 1) {
             this.headBalance.destroy();
-            this.cashBalance = this.createRouletteCounter(this.cashoutBtn.x-30,this.cashoutBtn.y+60,0.4,0,171,1000);
-            this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,0,171,1000);
+            this.cashBalance = this.createRouletteCounter(
+              this.cashoutBtn.x - 40,
+              this.cashoutBtn.y + 60,
+              0.3,
+              0,
+              171,
+              1000,
+              false,
+              "black"
+            );
+            this.headBalance = this.createRouletteCounter(
+              this.centerX + 20,
+              50,
+              0.3,
+              0,
+              171,
+              1000,
+              false
+            );
+            this.uiGroup.add(this.cashBalance);
+            this.uiGroup.add(this.headBalance);
+          } else {
+            this.cashBalance.destroy();
+            this.headBalance.destroy();
+            this.cashBalance = this.createRouletteCounter(
+              this.cashoutBtn.x - 40,
+              this.cashoutBtn.y + 60,
+              0.3,
+              171,
+              373,
+              1000,
+              false,
+              "black"
+            );
+            this.headBalance = this.createRouletteCounter(
+              this.centerX + 20,
+              50,
+              0.3,
+              171,
+              373,
+              1000,
+              false
+            );
             this.uiGroup.add(this.cashBalance);
             this.uiGroup.add(this.headBalance);
           }
-          else
-          {
-            this.cashBalance.destroy();
-            this.headBalance.destroy();
-            this.cashBalance = this.createRouletteCounter(this.cashoutBtn.x-30,this.cashoutBtn.y+60,0.4,171,373,1000);
-            this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,171,373,1000);
-            this.uiGroup.add(this.cashBalance);
-            this.uiGroup.add(this.headBalance);
-          }
 
-          if (this.activeRoad == 3) 
-          {
+          if (this.activeRoad == 3) {
             this.cashBalance.destroy();
             this.headBalance.destroy();
-            this.cashBalance = this.createRouletteCounter(this.cashoutBtn.x-30,this.cashoutBtn.y+60,0.4,373,610,1000);
-            this.headBalance = this.createRouletteCounter(this.centerX+40,50,0.3,373,610,1000);
+            this.cashBalance = this.createRouletteCounter(
+              this.cashoutBtn.x - 40,
+              this.cashoutBtn.y + 60,
+              0.3,
+              373,
+              610,
+              1000,
+              false,
+              "black"
+            );
+            this.headBalance = this.createRouletteCounter(
+              this.centerX + 20,
+              50,
+              0.3,
+              373,
+              610,
+              1000,
+              false
+            );
             this.uiGroup.add(this.cashBalance);
             this.uiGroup.add(this.headBalance);
             this.onThirdStep();
@@ -861,6 +941,8 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startWinEffect(x, y) {
+    this.isSoundEnable
+      this.sound.play("win");
 
     this.startPush();
     this.endEffectAnim = this.add
@@ -928,13 +1010,17 @@ export default class MainGame extends Phaser.Scene {
       // delay: 100,           // Задержка между повторами (если нужно)
     });
     */
+
+    
   }
 
   startPush() {
+    const scalePush = (this.scale.width<this.scale.height)?((this.scale.width/this.gameContainer.scale)/700):0.8;
 
-    const scalePush = 0.9;
+    console.log(this.scale.width,this.scale.height,this.gameContainer.scale);
+    
     this.pushSprite = this.add
-      .sprite(this.centerX, 75, "ui", "push.png")
+      .sprite(this.centerX, 50+30*scalePush, "ui", "push.png")
       .setOrigin(0.5, 0.5)
       .setScale(0);
 
@@ -942,31 +1028,31 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.pushSprite,
-      scale: 1*scalePush,
+      scale: 1 * scalePush,
       duration: 150,
       easy: "Quart.easeOut",
       onComplete: () => {
         const scale1 = this.tweens.add({
           targets: this.pushSprite,
-          scale: 0.8*scalePush,
+          scale: 0.8 * scalePush,
           duration: 110,
           easy: "Quart.easeOut",
           onComplete: () => {
             const scale2 = this.tweens.add({
               targets: this.pushSprite,
-              scale: 0.85*scalePush,
+              scale: 0.85 * scalePush,
               duration: 110,
               easy: "Quart.easeOut",
               onComplete: () => {
                 const scale3 = this.tweens.add({
                   targets: this.pushSprite,
-                  scale: 0.8*scalePush,
+                  scale: 0.8 * scalePush,
                   duration: 110,
                   easy: "Quart.easeOut",
                   onComplete: () => {
                     const scale4 = this.tweens.add({
                       targets: this.pushSprite,
-                      scale: 0.85*scalePush,
+                      scale: 0.85 * scalePush,
                       duration: 110,
                       easy: "Quart.easeOut",
                     });
@@ -1009,18 +1095,32 @@ export default class MainGame extends Phaser.Scene {
       },
     });
 
-
     this.time.delayedCall(2000, () => {
       //this.startCoinEffect(x,y);
-      if (isWin)
-      this.startMoneyAddScreen();
-      else
-        this.startFinalScreen();
+      if (isWin) this.startMoneyAddScreen();
+      else this.startFinalScreen();
     });
-
   }
 
   startLoseEffect(x, y) {
+    this.coinEmitter = this.add.particles(x, y, "main", {
+      anim: "loseeffect",
+      quantity: 1,
+      speed: { min: 500, max: 600 },
+      angle: { min: 0, max: 360 },
+      gravityY: 0,
+      scale: { start: 0.5, end: 1 },
+      lifespan: 900,
+    });
+
+    this.uiGroup.add(this.coinEmitter);
+
+    this.coinEmitter.flow(50, 5);
+    this.time.delayedCall(500, () => {
+      this.coinEmitter.stop();
+    });
+
+    /*
     this.endEffectAnim = this.add
       .sprite(x, y, "main", "animation_lose/feather_frames000.png")
       .setOrigin(0.5, 0.5)
@@ -1037,49 +1137,62 @@ export default class MainGame extends Phaser.Scene {
         //this.startCoinEffect(x,y);
       },
     });
+    */
 
     this.time.delayedCall(250, () => {
       //this.startCoinEffect(x,y);
       this.startEndPanel(false, this.centerX, 425);
     });
-
-
-
   }
 
-  startFinalScreen(){
-
+  startFinalScreen() {
     this.finalContainer = this.add.container();
     this.finalContainer.y = -1000;
-      this.finalBG = this.add.sprite(this.centerX,425,'bg3').setOrigin(0.5,0.5);
-      this.finalBG.scaleX = (this.scale.width/1280)*(850/this.scale.height);
-      this.finalBG.scaleY = (this.scale.height/1280)*850/this.scale.height;
+    this.finalBG = this.add
+      .sprite(this.centerX, 450, "bg3")
+      .setOrigin(0.5, 0.5);
+    this.finalBG.scaleX = (this.scale.width / 1280) * (900 / this.scale.height);
+    this.finalBG.scaleY =
+      ((this.scale.height / 1280) * 900) / this.scale.height;
 
-      this.finalArca = this.add.sprite(this.centerX,850,'packshot_arca').setOrigin(0.5,1).setScale(0.7);
-      this.finalFooter = this.add.sprite(this.centerX,850,'ui','packshot_footer.png').setOrigin(0.5,1);
-      this.finalChicken = this.add.sprite(this.centerX,400,'ui','packshot_chicken.png').setOrigin(0.5,0.5).setScale(0.6);
-      this.finalBtn = this.add.sprite(this.centerX,630,'ui','packshot_button.png').setOrigin(0.5,0.5).setScale(0.55);
-      this.finalHeader = this.add.sprite(this.centerX,40,'ui','packshot_heading.png').setOrigin(0.5,0).setScale(0.6);
+    this.finalArca = this.add
+      .sprite(this.centerX, 900, "packshot_arca")
+      .setOrigin(0.5, 1)
+      .setScale(0.7);
+    this.finalFooter = this.add
+      .sprite(this.centerX, 900, "ui", "packshot_footer.png")
+      .setOrigin(0.5, 1);
+    this.finalChicken = this.add
+      .sprite(this.centerX, 400, "ui", "packshot_chicken.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0.6);
+    this.finalBtn = this.add
+      .sprite(this.centerX, 630, "ui", "packshot_button.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0.55);
+    this.finalHeader = this.add
+      .sprite(this.centerX, 40, "ui", "packshot_heading.png")
+      .setOrigin(0.5, 0)
+      .setScale(0.6);
 
-      
-      this.uiGroup.add(this.finalContainer);
-      this.finalContainer.add(this.finalBG);
-      this.finalContainer.add(this.finalArca);
-      this.finalContainer.add(this.finalFooter);
-      this.finalContainer.add(this.finalChicken);
-      this.finalContainer.add(this.finalBtn);
-      this.finalContainer.add(this.finalHeader);
+    this.uiGroup.add(this.finalContainer);
+    this.finalContainer.add(this.finalBG);
+    this.finalContainer.add(this.finalArca);
+    this.finalContainer.add(this.finalFooter);
+    this.finalContainer.add(this.finalChicken);
+    this.finalContainer.add(this.finalBtn);
+    this.finalContainer.add(this.finalHeader);
 
-      this.tweens.add({
-        targets: this.finalBtn,
-        scale: 0.53,
-        duration: 1000,
+    this.tweens.add({
+      targets: this.finalBtn,
+      scale: 0.53,
+      duration: 1000,
       ease: "Sine.easeInOut",
-      yoyo: true, 
-      repeat: -1
-      })
+      yoyo: true,
+      repeat: -1,
+    });
 
-      this.tutorialHand.x = this.finalBtn.x + 90;
+    this.tutorialHand.x = this.finalBtn.x + 90;
     this.tutorialHand.y = this.finalBtn.y + 10;
     this.tutorialHand.visible = true;
     this.finalContainer.add(this.tutorialHand);
@@ -1095,56 +1208,72 @@ export default class MainGame extends Phaser.Scene {
       // repeat: 3,                     // например, 3 раза туда-обратно
     });
 
-    
-      this.tweens.add({
-        targets: this.finalContainer,
-        y: 0,
-        duration: 300,
+    this.tweens.add({
+      targets: this.finalContainer,
+      y: 0,
+      duration: 300,
       ease: "Sine.easeInOut",
-      })
-
-
+    });
   }
 
   startMoneyAddScreen() {
-
     //this.cover.visible = false;
+    this.isSoundEnable
+      this.sound.play("bank3");
 
-    const bankScale = 
+    const bankScale =
       this.scale.width > this.scale.height
         ? 1
         : this.scale.width / this.scale.height;
-      this.moneyAddContainer = this.add.container();
-      this.moneyAddBG = this.add.sprite(this.centerX,425,'bg4').setOrigin(0.5,0.5);
-      this.moneyAddBG.scaleX = (this.scale.width/1280)*(850/this.scale.height);
-      this.moneyAddBG.scaleY = (this.scale.height/1280)*850/this.scale.height;
-      
-      this.uiGroup.add(this.moneyAddContainer);
-      this.moneyAddContainer.add(this.moneyAddBG);
+    this.moneyAddContainer = this.add.container();
+    this.moneyAddBG = this.add
+      .sprite(this.centerX, 450, "bg4")
+      .setOrigin(0.5, 0.5);
+    this.moneyAddBG.scaleX =
+      (this.scale.width / 1280) * (900 / this.scale.height);
+    this.moneyAddBG.scaleY =
+      ((this.scale.height / 1280) * 900) / this.scale.height;
 
-      this.bankUI1 = this.add.sprite(this.centerX,425,"ui","bank_ui_1.png").setOrigin(0.5,0.5).setScale(0.8*bankScale);
-      this.bankUI2 = this.add.sprite(this.centerX,830,"ui","bank_ui_2.png").setOrigin(0.5,1).setScale(bankScale);
-      this.bankUI3 = this.add.sprite(this.centerX,20,"ui","bank_ui_3.png").setOrigin(0.5,0).setScale(bankScale);
-      this.moneyAddContainer.add(this.bankUI1);
-      this.moneyAddContainer.add(this.bankUI2);
-      this.moneyAddContainer.add(this.bankUI3);
+    this.uiGroup.add(this.moneyAddContainer);
+    this.moneyAddContainer.add(this.moneyAddBG);
 
-      this.moneyBalance = this.createRouletteCounter(this.centerX-50,425-280*bankScale,0.6*bankScale,0,2323,2000);
-      this.moneyAddContainer.add(this.moneyBalance);
-      this.moneyAddContainer.x = 2000;
+    this.bankUI1 = this.add
+      .sprite(this.centerX, 445, "ui", "bank_ui_1.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0.8 * bankScale);
+    this.bankUI2 = this.add
+      .sprite(this.centerX, 880, "ui", "bank_ui_2.png")
+      .setOrigin(0.5, 1)
+      .setScale(bankScale);
+    this.bankUI3 = this.add
+      .sprite(this.centerX, 20, "ui", "bank_ui_3.png")
+      .setOrigin(0.5, 0)
+      .setScale(bankScale);
+    this.moneyAddContainer.add(this.bankUI1);
+    this.moneyAddContainer.add(this.bankUI2);
+    this.moneyAddContainer.add(this.bankUI3);
 
-            this.tweens.add({
-        targets: this.moneyAddContainer,
-        x: 0,
-        duration: 300,
+    this.moneyBalance = this.createRouletteCounter(
+      this.centerX - 50,
+      425 - 250 * bankScale,
+      0.6 * bankScale,
+      0,
+      2323,
+      2000
+    );
+    this.moneyAddContainer.add(this.moneyBalance);
+    this.moneyAddContainer.x = 2000;
+
+    this.tweens.add({
+      targets: this.moneyAddContainer,
+      x: 0,
+      duration: 300,
       ease: "Sine.easeInOut",
-      })
-
-      this.time.delayedCall(3000, () => {
-      
-        this.startFinalScreen();
     });
 
+    this.time.delayedCall(3000, () => {
+      this.startFinalScreen();
+    });
   }
 
   startResultScreen(isWin = true) {
@@ -1156,12 +1285,21 @@ export default class MainGame extends Phaser.Scene {
     else this.startLoseEffect(this.centerX, 425);
   }
 
-  createRouletteCounter(x, y, scale,min, max, duration) {
+  createRouletteCounter(
+    x,
+    y,
+    scale,
+    min,
+    max,
+    duration,
+    isSmall = true,
+    dirprefix = ""
 
+  ) {
     const atlasKey = "ui";
     const container = this.add.container(x, y);
     container.setScale(scale);
-    
+
     const spacing = 40;
     const decimals = 2;
     const formatWidth = 7; // Максимум: "1000.00" → 7 символов
@@ -1174,90 +1312,82 @@ export default class MainGame extends Phaser.Scene {
 
     // Функция форматирования числа: 12.3 → "12.30", 5 → "5.00", 1000 → "1000.00"
     function formatNumber(num) {
-        const fixed = num.toFixed(decimals);
-        return fixed.padStart(formatWidth - decimals - 1, ' ').replace(' ', '0'); // Дополняем нулями слева
+      const fixed = num.toFixed(decimals);
+      return fixed.padStart(formatWidth - decimals - 1, " ").replace(" ", "0"); // Дополняем нулями слева
     }
 
     // Функция обновления отображения
     function updateDisplay(value) {
-        const str = ""+Math.floor(value);
-        //formatNumber(value);
-        container.removeAll(true);
+      const str = "" + Math.floor(value);
+      //formatNumber(value);
+      container.removeAll(true);
 
-        
+      let offsetX = 0;
+      for (let char of str) {
+        if (char === " ") continue;
 
-        let offsetX = 0;
-        for (let char of str) {
-            if (char === ' ') continue;
-
-            let frameName;
-            if (char === '.') {
-                frameName = 'nums/dot.png';
-            } else if (/[0-9]/.test(char)) {
-                frameName = `nums/0${char}.png`;
-            } else {
-                continue;
-            }
-
-            const sprite = self.add.sprite(offsetX, 0, atlasKey, frameName);
-            container.add(sprite);
-            offsetX += spacing;
+        let frameName;
+        if (char === ".") {
+          frameName = "nums"+dirprefix+"/dot.png";
+        } else if (/[0-9]/.test(char)) {
+          frameName = `nums`+dirprefix+`/0${char}.png`;
+        } else {
+          continue;
         }
 
-        offsetX -= spacing/3;
+        const sprite = self.add.sprite(offsetX, 0, atlasKey, frameName);
+        container.add(sprite);
+        offsetX += spacing;
+      }
 
-        for (let i=0;i<3;i++)
-        {
-          let frameName = i==0?"nums/dot.png":"nums/00.png";
-          const sprite = self.add.sprite(offsetX, 15, atlasKey, frameName);
-          sprite.setScale(0.5);
-          container.add(sprite);
-          offsetX += spacing/2;
-        }
+      offsetX -= spacing / 3;
 
-        offsetX += spacing/2;
+      for (let i = 0; i < 3; i++) {
+        let frameName = i == 0 ? "nums"+dirprefix+"/dot.png" : "nums"+dirprefix+"/00.png";
+        const sprite = self.add.sprite(offsetX, isSmall?15:0, atlasKey, frameName);
+        if (isSmall) sprite.setScale(0.5);
+        container.add(sprite);
+        offsetX += spacing / 2;
+        if (!isSmall) offsetX += spacing / 2;
+      }
 
-        let frameName ="nums/0€.png"
-        const sprite = self.add.sprite(offsetX, 15, atlasKey, frameName);
-          sprite.setScale(0.5);
-          container.add(sprite);
+      offsetX += spacing / 2;
+      if (!isSmall) offsetX += spacing / 2;
 
+      let frameName = "nums"+dirprefix+"/0€.png";
+      const sprite = self.add.sprite(offsetX, isSmall?15:0, atlasKey, frameName);
+      if (isSmall) sprite.setScale(0.5);
+      container.add(sprite);
     }
 
     // Первое отображение
     updateDisplay(currentVal);
 
     // Анимация
-    if (duration>0)
-    {
-    const timer = this.time.addEvent({
+    if (duration > 0) {
+      const timer = this.time.addEvent({
         delay: 16.6, // ~60 FPS
         callback: () => {
-            currentVal += increment;
-            if (currentVal >= max) {
-              console.log(currentVal);
-                currentVal = max;
-                updateDisplay(currentVal);
-                timer.remove(); // Завершаем
-            } else {
-                updateDisplay(currentVal);
-            }
+          currentVal += increment;
+          if (currentVal >= max) {
+            console.log(currentVal);
+            currentVal = max;
+            updateDisplay(currentVal);
+            timer.remove(); // Завершаем
+          } else {
+            updateDisplay(currentVal);
+          }
         },
-        repeat: Math.floor(totalFrames)
-    });
+        repeat: Math.floor(totalFrames),
+      });
     }
-
-
 
     // Добавим метод для остановки вручную
     container.stop = () => {
-        if (timer) timer.remove();
-        updateDisplay(max);
+      if (timer) timer.remove();
+      updateDisplay(max);
     };
 
-
     return container;
-}
-
-  
+  }
 }
