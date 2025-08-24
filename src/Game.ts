@@ -1,6 +1,5 @@
 import Phaser from "phaser";
-import { ResultScreen } from "./ResultScreen";
-import { HeaderUI } from "./HeaderUI";
+
 import {
   CAR_DELTA_X,
   CAR_FRAMES,
@@ -14,24 +13,20 @@ import {
   FENCE_DELTA_X,
   FENCE_DELTA_Y,
   FENCE_MOVE_TIME,
-  PARTICLE_LIFETIME,
-  PARTICLES_COUNT,
   ROAD_CELL_H,
   ROAD_CELL_W,
   ROAD_COLS,
   ROAD_ROWS,
   ROAD_START_X,
-  ROTATE_WHEEL_TEXT,
   SIDEWALK_CELL_H,
   SIDEWALK_DELTA_X,
   SIDEWALK_ROWS,
   SIDEWALK_START_X,
-  SLOTS_DATA,
-  START_ATTEMPTS,
-  WHEEL_ROTATE_DELAY,
-  WHEEL_ROTATE_DURATION,
+
 } from "./constants";
 import { getScaleValue } from "./getScaleValue";
+
+const coversSprites = ["150", "321", "523", "756", "1020", "1315", "1641"];
 
 export default class MainGame extends Phaser.Scene {
   roadGroup: Phaser.GameObjects.Container;
@@ -49,8 +44,6 @@ export default class MainGame extends Phaser.Scene {
   carsTween: Phaser.Tweens.Tween[];
   fences: Phaser.GameObjects.Sprite[];
   particlesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
-  resultScreen: ResultScreen;
-  headerUI: HeaderUI;
   goBtn: Phaser.GameObjects.Sprite;
   cashoutBtn: Phaser.GameObjects.Sprite;
   tutorialText: Phaser.GameObjects.Sprite;
@@ -59,7 +52,7 @@ export default class MainGame extends Phaser.Scene {
   uiPanel: Phaser.GameObjects.Sprite;
   headerSprite: Phaser.GameObjects.Sprite;
   cashOutText: Phaser.GameObjects.Text;
-  headerText: Phaser.GameObjects.Text;
+  
   cover: Phaser.GameObjects.Rectangle;
   coinEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
   loseEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -74,6 +67,9 @@ export default class MainGame extends Phaser.Scene {
 
   headBalance: Phaser.GameObjects.Container;
   cashBalance: Phaser.GameObjects.Container;
+  onlineText: Phaser.GameObjects.Container;
+  onlineSprite: Phaser.GameObjects.Sprite;
+  usernameSprite: Phaser.GameObjects.Sprite;
   soundIcon: Phaser.GameObjects.Sprite;
 
   chicken: Phaser.GameObjects.Sprite;
@@ -84,6 +80,10 @@ export default class MainGame extends Phaser.Scene {
   bankUI1: Phaser.GameObjects.Sprite;
   bankUI2: Phaser.GameObjects.Sprite;
   bankUI3: Phaser.GameObjects.Sprite;
+  chicon1: Phaser.GameObjects.Sprite;
+  chicon2: Phaser.GameObjects.Sprite;
+  chicon3: Phaser.GameObjects.Sprite;
+  chicon4: Phaser.GameObjects.Sprite;
   moneyBalance: Phaser.GameObjects.Container;
 
   finalContainer: Phaser.GameObjects.Container;
@@ -104,6 +104,7 @@ export default class MainGame extends Phaser.Scene {
   isTutorial: boolean = false;
   isWaitStart: boolean = true;
   isSoundEnable: boolean = true;
+  isResult: boolean = false;
 
   preload() {
     this.load.audio("jump", "sounds/01_jump.mp3");
@@ -178,14 +179,16 @@ export default class MainGame extends Phaser.Scene {
       this.mcovers[i].x = ROAD_START_X + i * ROAD_CELL_W;
       this.mcovers[i].y = COVER_DELTA_Y;
       this.coversSprite[i] = this.add
-        .sprite(COVER_DELTA_X, 0, "main", "manhole_cover.png")
+        .sprite(COVER_DELTA_X, 0, "main", "covers/" + coversSprites[i] + ".png")
         .setOrigin(0, 0)
         .setScale(0.8);
+      /*
       this.coversText[i] = this.add
         .text(COVER_DELTA_X + 50, 50, COL_MONEY[i] + "$")
         .setOrigin(0.5, 0.5);
+        */
       this.mcovers[i].add(this.coversSprite[i]);
-      this.mcovers[i].add(this.coversText[i]);
+      //this.mcovers[i].add(this.coversText[i]);
 
       this.roadCols[i].x = ROAD_START_X + i * ROAD_CELL_W;
 
@@ -489,19 +492,11 @@ export default class MainGame extends Phaser.Scene {
       .sprite(
         this.centerX - 70,
         240 + ROAD_CELL_H * ROAD_ROWS,
-        "main",
-        "cashout_button.png"
+        "ui",
+        "cashout2.png"
       )
       .setOrigin(0.5, 0)
       .setScale(0.5);
-
-    this.cashoutBtn.setInteractive();
-
-    // Обработчик клика
-    this.cashoutBtn.on("pointerdown", (pointer) => {
-      if (!this.isJumping && !this.isTutorial && this.activeRoad == 3)
-        this.startResultScreen();
-    });
 
     this.headerSprite = this.add
       .sprite(this.centerX, 20, "main", "header.png")
@@ -519,24 +514,20 @@ export default class MainGame extends Phaser.Scene {
     );
 
     this.soundIcon = this.add
-      .sprite(5, this.scale.height-5, "main", "sound_button.png")
+      .sprite(5, this.scale.height - 5, "main", "sound_button.png")
       .setOrigin(0, 1)
       .setScale(0.5);
 
-      this.soundIcon.setInteractive();
+    this.soundIcon.setInteractive();
 
-     this.soundIcon.on("pointerdown", (pointer) => {
-        this.isSoundEnable = !this.isSoundEnable;
-        if (this.isSoundEnable)
-        {
-          this.soundIcon.setTexture("main","sound_button.png");
-        }
-        else
-        {
-          this.soundIcon.setTexture("main","sound_button_off.png");
-        }
+    this.soundIcon.on("pointerdown", (pointer) => {
+      this.isSoundEnable = !this.isSoundEnable;
+      if (this.isSoundEnable) {
+        this.soundIcon.setTexture("main", "sound_button.png");
+      } else {
+        this.soundIcon.setTexture("main", "sound_button_off.png");
+      }
     });
-      
 
     this.topBg = this.add.graphics();
     this.topBg.fillStyle(0x000000, 1);
@@ -548,6 +539,43 @@ export default class MainGame extends Phaser.Scene {
     this.bottomBg.fillRect(0, 100 + ROAD_CELL_H * ROAD_ROWS, 2000, 1000); // x, y, ширина, высота
     this.uiGroup.add(this.bottomBg);
 
+    this.onlineSprite = this.add
+      .sprite(0, 100, "main", "europe/top.png")
+      .setOrigin(0, 0);
+
+    this.onlineText = this.createRouletteCounter(
+      220,
+      130,
+      0.3,
+      11900,
+      11952,
+      500,
+      false,
+      "",
+      true
+    );
+
+    this.usernameSprite = this.add
+      .sprite(0, 140, "main", "europe/eur_bottom_1.png")
+      .setOrigin(0, 0);
+
+    this.time.addEvent({
+      delay: 3000,
+      callback: () => {
+        if (!this.isResult)
+          this.usernameSprite.setTexture(
+            "main",
+            "europe/eur_bottom_" + Math.floor(Math.random() * 6 + 1) + ".png"
+          );
+      },
+      callbackScope: this,
+      loop: true,
+    });
+
+    //this.usernameSprite = this.add.sprite()
+    this.uiGroup.add(this.onlineSprite);
+    this.uiGroup.add(this.onlineText);
+    this.uiGroup.add(this.usernameSprite);
     this.uiGroup.add(this.uiPanel);
     this.uiGroup.add(this.goBtn);
     this.uiGroup.add(this.cashoutBtn);
@@ -587,8 +615,8 @@ export default class MainGame extends Phaser.Scene {
       .rectangle(
         this.cameras.main.width / 2, // x (центр)
         this.cameras.main.height / 2, // y (центр)
-        this.cameras.main.width, // ширина
-        this.cameras.main.height, // высота
+        10*this.cameras.main.width, // ширина
+        10*this.cameras.main.height, // высота
         0x000000, // цвет (любой, мы сделаем прозрачным)
         0.5 // альфа = 0 → полностью прозрачный
       )
@@ -611,14 +639,38 @@ export default class MainGame extends Phaser.Scene {
     });
 
     //this.startMoneyAddScreen();
-    //this.startFinalScreen();
+    //this.startFinalScreen(true);
     //this.startPush();
+      this.scale.on('resize', this.resizeGame, this);
   }
 
   onThirdStep() {
     this.goBtn.setTexture("main", "risk.png");
-    this.tutorialHand.x = this.cashoutBtn.x + 100;
-    this.tutorialHand.y = this.cashoutBtn.y + 100;
+    this.tutorialHand.destroy();
+
+    this.cashoutBtn.setInteractive();
+
+    this.cashoutBtn.on("pointerdown", (pointer) => {
+      if (!this.isJumping && !this.isTutorial && this.activeRoad == 3)
+        this.startResultScreen();
+    });
+
+    const tutorialScale =
+      this.scale.width > this.scale.height
+        ? 1
+        : this.scale.width / this.scale.height;
+
+    this.tutorialHand = this.add
+      .sprite(
+        this.cashoutBtn.x + 100,
+        this.cashoutBtn.y + 100,
+        "ui",
+        "tutor_hand.png"
+      )
+      .setAngle(-45)
+      .setScale(tutorialScale);
+    this.uiGroup.add(this.tutorialHand);
+
     this.tutorialHand.visible = true;
 
     this.handTween = this.tweens.add({
@@ -676,10 +728,53 @@ export default class MainGame extends Phaser.Scene {
       });
 
       this.mcovers[i].visible = true;
-      this.coversText[i].visible = true;
+      //this.coversText[i].visible = true;
       this.mcovers[i].setScale(1);
-      this.coversSprite[i].setTexture("main", "manhole_cover.png");
+      this.coversSprite[i].setTexture(
+        "main",
+        "covers/" + coversSprites[i] + ".png"
+      );
     }
+  }
+
+  resizeGame()
+  {
+
+    this.gameContainer.setScale(this.scale.height / 900);
+    this.centerX = (0.5 * this.scale.width * 900) / this.scale.height;
+
+    this.uiPanel.x = this.centerX;
+    this.goBtn.x = this.centerX + 70
+    this.cashoutBtn.x = this.centerX - 70;
+    this.headBalance.x = this.centerX + 30;
+    this.headerSprite.x = this.centerX;
+
+    
+    const tutorialScale =
+      this.scale.width > this.scale.height
+        ? 1
+        : this.scale.width / this.scale.height;
+
+    this.tutorialText.x = this.centerX;
+    this.tutorialText.setScale(tutorialScale);
+
+    //if (this.tutorialHand.visible)
+    {
+      this.tutorialHand.x = this.centerX+330;
+      this.tutorialHand.setScale(tutorialScale);
+      
+    this.handTween = this.tweens.add({
+      targets: this.tutorialHand,
+      x: this.tutorialHand.x - 70,
+      y: this.tutorialHand.y - 70,
+      duration: 700, // 0.5 секунды до точки
+      ease: "Sine.easeInOut", // плавное ускорение/замедление
+      yoyo: true, // возвращается обратно
+      repeat: -1, // бесконечно (или поставь число повторений)
+      
+    });
+    }
+
   }
 
   onJump(isGhoust: boolean = false) {
@@ -710,8 +805,7 @@ export default class MainGame extends Phaser.Scene {
     const startY = this.chicken.y;
     const jumpHeight = 50;
 
-    if (this.isSoundEnable)
-        this.sound.play("jump");
+    if (this.isSoundEnable) this.sound.play("jump");
 
     if (this.activeRoad < 3) {
       this.tweens.add({
@@ -758,7 +852,8 @@ export default class MainGame extends Phaser.Scene {
       onComplete: () => {
         this.isJumping = false;
         this.mcovers[this.activeRoad].visible = false;
-        this.coversText[this.activeRoad].visible = false;
+        //this.coversText[this.activeRoad].visible = false;
+
         this.activeRoad += 1;
 
         if (isGhoust) {
@@ -778,6 +873,19 @@ export default class MainGame extends Phaser.Scene {
           });
         } else {
           if (this.activeRoad == 1) {
+            this.cashoutBtn.destroy();
+            this.cashoutBtn = this.add
+              .sprite(
+                this.centerX - 70,
+                240 + ROAD_CELL_H * ROAD_ROWS,
+                "main",
+                "cashout_button.png"
+              )
+              .setOrigin(0.5, 0)
+              .setScale(0.5);
+
+            this.uiGroup.add(this.cashoutBtn);
+
             this.headBalance.destroy();
             this.cashBalance = this.createRouletteCounter(
               this.cashoutBtn.x - 40,
@@ -941,8 +1049,8 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startWinEffect(x, y) {
-    this.isSoundEnable
-      this.sound.play("win");
+    
+    if (this.isSoundEnable)  this.sound.play("win");
 
     this.startPush();
     this.endEffectAnim = this.add
@@ -1010,17 +1118,18 @@ export default class MainGame extends Phaser.Scene {
       // delay: 100,           // Задержка между повторами (если нужно)
     });
     */
-
-    
   }
 
   startPush() {
-    const scalePush = (this.scale.width<this.scale.height)?((this.scale.width/this.gameContainer.scale)/700):0.8;
+    const scalePush =
+      this.scale.width < this.scale.height
+        ? this.scale.width / this.gameContainer.scale / 700
+        : 0.8;
 
-    console.log(this.scale.width,this.scale.height,this.gameContainer.scale);
-    
+    console.log(this.scale.width, this.scale.height, this.gameContainer.scale);
+
     this.pushSprite = this.add
-      .sprite(this.centerX, 50+30*scalePush, "ui", "push.png")
+      .sprite(this.centerX, 50 + 30 * scalePush, "ui", "push.png")
       .setOrigin(0.5, 0.5)
       .setScale(0);
 
@@ -1098,7 +1207,7 @@ export default class MainGame extends Phaser.Scene {
     this.time.delayedCall(2000, () => {
       //this.startCoinEffect(x,y);
       if (isWin) this.startMoneyAddScreen();
-      else this.startFinalScreen();
+      else this.startFinalScreen(false);
     });
   }
 
@@ -1145,7 +1254,7 @@ export default class MainGame extends Phaser.Scene {
     });
   }
 
-  startFinalScreen() {
+  startFinalScreen(isWin = false) {
     this.finalContainer = this.add.container();
     this.finalContainer.y = -1000;
     this.finalBG = this.add
@@ -1170,10 +1279,42 @@ export default class MainGame extends Phaser.Scene {
       .sprite(this.centerX, 630, "ui", "packshot_button.png")
       .setOrigin(0.5, 0.5)
       .setScale(0.55);
+    this.finalCoin1 = this.add
+      .sprite(this.centerX + 150, 120, "main", "coin_flip.png")
+      .setOrigin(0.5, 0)
+      .setScale(0.6);
+
+    this.finalCoin2 = this.add
+      .sprite(this.centerX - 150, 140, "main", "coin_flip.png")
+      .setOrigin(0.5, 0)
+      .setScale(0.6);
+
+    this.finalCoin2.flipX = true;
+
     this.finalHeader = this.add
       .sprite(this.centerX, 40, "ui", "packshot_heading.png")
       .setOrigin(0.5, 0)
       .setScale(0.6);
+
+    if (isWin) {
+      this.coinEmitter = this.add.particles(this.centerX, 400, "main", {
+        anim: "coinwin",
+        quantity: 1,
+        speed: { min: 500, max: 600 },
+        angle: { min: 0, max: 360 },
+        gravityY: 0,
+        scale: { start: 0.5, end: 1 },
+        lifespan: 900,
+      });
+
+      this.coinEmitter.flow(50, 5);
+      this.time.delayedCall(500, () => {
+        this.coinEmitter.stop();
+      });
+
+      if (this.isSoundEnable) 
+        this.sound.play("win");
+    }
 
     this.uiGroup.add(this.finalContainer);
     this.finalContainer.add(this.finalBG);
@@ -1181,7 +1322,10 @@ export default class MainGame extends Phaser.Scene {
     this.finalContainer.add(this.finalFooter);
     this.finalContainer.add(this.finalChicken);
     this.finalContainer.add(this.finalBtn);
+    this.finalContainer.add(this.finalCoin1);
+    this.finalContainer.add(this.finalCoin2);
     this.finalContainer.add(this.finalHeader);
+    this.finalContainer.add(this.coinEmitter);
 
     this.tweens.add({
       targets: this.finalBtn,
@@ -1192,8 +1336,52 @@ export default class MainGame extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.tutorialHand.x = this.finalBtn.x + 90;
-    this.tutorialHand.y = this.finalBtn.y + 10;
+    this.tweens.add({
+      targets: this.finalFooter,
+      y: 950,
+      duration: 1000,
+      ease: "Sine.easeInOut",
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tweens.add({
+      targets: this.finalCoin2,
+      y: 135,
+      duration: 1000,
+      ease: "Sine.easeInOut",
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tweens.add({
+      targets: this.finalCoin1,
+      y: 130,
+      duration: 1000,
+      ease: "Sine.easeInOut",
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tweens.add({
+      targets: this.finalChicken,
+      y: 410,
+      duration: 1000,
+      ease: "Sine.easeInOut",
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tutorialHand = this.add
+      .sprite(
+        this.finalBtn.x + 120,
+        this.finalBtn.y + 180,
+        "ui",
+        "tutor_hand.png"
+      )
+      .setAngle(-45)
+      .setScale(0.5);
+
     this.tutorialHand.visible = true;
     this.finalContainer.add(this.tutorialHand);
 
@@ -1201,7 +1389,7 @@ export default class MainGame extends Phaser.Scene {
       targets: this.tutorialHand,
       x: this.tutorialHand.x - 30,
       y: this.tutorialHand.y - 30,
-      duration: 400, // 0.5 секунды до точки
+      duration: 600,
       ease: "Sine.easeInOut", // плавное ускорение/замедление
       yoyo: true, // возвращается обратно
       repeat: -1, // бесконечно (или поставь число повторений)
@@ -1218,8 +1406,6 @@ export default class MainGame extends Phaser.Scene {
 
   startMoneyAddScreen() {
     //this.cover.visible = false;
-    this.isSoundEnable
-      this.sound.play("bank3");
 
     const bankScale =
       this.scale.width > this.scale.height
@@ -1253,6 +1439,169 @@ export default class MainGame extends Phaser.Scene {
     this.moneyAddContainer.add(this.bankUI2);
     this.moneyAddContainer.add(this.bankUI3);
 
+    const startDelay = 500;
+
+    this.chicon1 = this.add
+      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch1.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0.8 * bankScale);
+
+    this.chicon2 = this.add
+      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch2.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0);
+
+    this.chicon3 = this.add
+      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch3.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0);
+
+    this.chicon4 = this.add
+      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch3.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0);
+
+    this.tweens.add({
+      targets: this.moneyAddContainer,
+      x: 0,
+      duration: 300,
+      ease: "Sine.easeInOut",
+    });
+
+    this.tweens.add({
+      targets: this.chicon1,
+      y: 445 + 110 * bankScale,
+      duration: 300,
+      delay: startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+      onComplete: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon1,
+      y: 445 + 180 * bankScale,
+      duration: 300,
+      delay: 1000 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon1,
+      y: 445 + 250 * bankScale,
+      duration: 300,
+      delay: 1500 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon1,
+      y: 445 + 110 * bankScale,
+      duration: 300,
+      delay: 500 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+      onComplete: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon2,
+      scale: 0.88 * bankScale,
+      duration: 100,
+      delay: 300 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {
+        if (this.isSoundEnable) {
+          this.sound.play("bank1");
+        }
+      },
+    });
+
+    this.tweens.add({
+      targets: this.chicon2,
+      scale: 0.8 * bankScale,
+      duration: 100,
+      delay: 400 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon2,
+      y: 445 + 110 * bankScale,
+      duration: 300,
+      delay: 1000 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon2,
+      y: 445 + 180 * bankScale,
+      duration: 300,
+      delay: 1500 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon3,
+      scale: 0.88 * bankScale,
+      duration: 100,
+      delay: 1300 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {
+        if (this.isSoundEnable) {
+          this.sound.play("bank1");
+        }
+      },
+    });
+
+    this.tweens.add({
+      targets: this.chicon3,
+      scale: 0.8 * bankScale,
+      duration: 100,
+      delay: 1400 + startDelay,
+      ease: "Sine.easeInOut",
+    });
+
+    this.tweens.add({
+      targets: this.chicon3,
+      y: 445 + 110 * bankScale,
+      duration: 300,
+      delay: 1500 + startDelay,
+      ease: "Sine.easeInOut",
+    });
+
+    this.tweens.add({
+      targets: this.chicon4,
+      scale: 0.88 * bankScale,
+      duration: 100,
+      delay: 1800 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {},
+    });
+
+    this.tweens.add({
+      targets: this.chicon4,
+      scale: 0.8 * bankScale,
+      duration: 100,
+      delay: 1900 + startDelay,
+      ease: "Sine.easeInOut",
+      onStart: () => {
+        if (this.isSoundEnable) {
+          this.sound.play("bank1");
+        }
+      },
+    });
+
+    this.moneyAddContainer.add(this.chicon1);
+    this.moneyAddContainer.add(this.chicon2);
+    this.moneyAddContainer.add(this.chicon3);
+    this.moneyAddContainer.add(this.chicon4);
+
     this.moneyBalance = this.createRouletteCounter(
       this.centerX - 50,
       425 - 250 * bankScale,
@@ -1272,11 +1621,12 @@ export default class MainGame extends Phaser.Scene {
     });
 
     this.time.delayedCall(3000, () => {
-      this.startFinalScreen();
+      this.startFinalScreen(true);
     });
   }
 
   startResultScreen(isWin = true) {
+    this.isResult = true;
     this.tutorialHand.visible = false;
     this.handTween.stop();
     this.cover.setAlpha(0.5);
@@ -1293,8 +1643,8 @@ export default class MainGame extends Phaser.Scene {
     max,
     duration,
     isSmall = true,
-    dirprefix = ""
-
+    dirprefix = "",
+    isNoCur = false
   ) {
     const atlasKey = "ui";
     const container = this.add.container(x, y);
@@ -1328,9 +1678,9 @@ export default class MainGame extends Phaser.Scene {
 
         let frameName;
         if (char === ".") {
-          frameName = "nums"+dirprefix+"/dot.png";
+          frameName = "nums" + dirprefix + "/dot.png";
         } else if (/[0-9]/.test(char)) {
-          frameName = `nums`+dirprefix+`/0${char}.png`;
+          frameName = `nums` + dirprefix + `/0${char}.png`;
         } else {
           continue;
         }
@@ -1342,22 +1692,37 @@ export default class MainGame extends Phaser.Scene {
 
       offsetX -= spacing / 3;
 
-      for (let i = 0; i < 3; i++) {
-        let frameName = i == 0 ? "nums"+dirprefix+"/dot.png" : "nums"+dirprefix+"/00.png";
-        const sprite = self.add.sprite(offsetX, isSmall?15:0, atlasKey, frameName);
-        if (isSmall) sprite.setScale(0.5);
-        container.add(sprite);
+      if (!isNoCur) {
+        for (let i = 0; i < 3; i++) {
+          let frameName =
+            i == 0
+              ? "nums" + dirprefix + "/dot.png"
+              : "nums" + dirprefix + "/00.png";
+          const sprite = self.add.sprite(
+            offsetX,
+            isSmall ? 15 : 0,
+            atlasKey,
+            frameName
+          );
+          if (isSmall) sprite.setScale(0.5);
+          container.add(sprite);
+          offsetX += spacing / 2;
+          if (!isSmall) offsetX += spacing / 2;
+        }
+
         offsetX += spacing / 2;
         if (!isSmall) offsetX += spacing / 2;
+
+        let frameName = "nums" + dirprefix + "/0€.png";
+        const sprite = self.add.sprite(
+          offsetX,
+          isSmall ? 15 : 0,
+          atlasKey,
+          frameName
+        );
+        if (isSmall) sprite.setScale(0.5);
+        container.add(sprite);
       }
-
-      offsetX += spacing / 2;
-      if (!isSmall) offsetX += spacing / 2;
-
-      let frameName = "nums"+dirprefix+"/0€.png";
-      const sprite = self.add.sprite(offsetX, isSmall?15:0, atlasKey, frameName);
-      if (isSmall) sprite.setScale(0.5);
-      container.add(sprite);
     }
 
     // Первое отображение
