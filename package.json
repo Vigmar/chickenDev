@@ -1,5 +1,5 @@
 {
-  "name": "spinrush",
+  "name": "chickenroad",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -11,6 +11,6 @@
     "vite": "^5.1.6"
   },
   "dependencies": {
-    "phaser": "^3.80.1"
+    "phaser": "^3.90.0"
   }
 }
