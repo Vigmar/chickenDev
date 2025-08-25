@@ -22,7 +22,6 @@ import {
   SIDEWALK_DELTA_X,
   SIDEWALK_ROWS,
   SIDEWALK_START_X,
-
 } from "./constants";
 import { getScaleValue } from "./getScaleValue";
 
@@ -51,8 +50,7 @@ export default class MainGame extends Phaser.Scene {
   handTween: Phaser.Tweens.Tween;
   uiPanel: Phaser.GameObjects.Sprite;
   headerSprite: Phaser.GameObjects.Sprite;
-  cashOutText: Phaser.GameObjects.Text;
-  
+
   cover: Phaser.GameObjects.Rectangle;
   coinEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
   loseEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -163,6 +161,7 @@ export default class MainGame extends Phaser.Scene {
 
     // Основная камера игнорирует UI
     this.cameras.main.ignore(this.uiGroup);
+    this.cameras.main.roundPixels = true;
 
     this.roadCols = [];
     this.mcovers = [];
@@ -223,6 +222,21 @@ export default class MainGame extends Phaser.Scene {
         );
       }
 
+    for (let j = 0; j < SIDEWALK_ROWS; j++) {
+      this.decorGroup.add(
+        this.add
+          .sprite(
+            SIDEWALK_START_X +
+              (SIDEWALK_DELTA_X + ROAD_CELL_W * ROAD_COLS) +
+              272,
+            j * SIDEWALK_CELL_H,
+            "main",
+            "sidewalk_texture.png"
+          )
+          .setOrigin(0, 0)
+      );
+    }
+
     this.decorGroup.add(
       this.add.sprite(0, 0, "main", "city_2.png").setOrigin(0, 0)
     );
@@ -236,22 +250,22 @@ export default class MainGame extends Phaser.Scene {
         )
         .setOrigin(0, 0)
     );
-
-    for (let i = 0; i < ROAD_COLS; i++) {
-      this.fences[i] = this.add
-        .sprite(FENCE_DELTA_X + ROAD_CELL_W * i, -100, "main", "fence.png")
+    this.decorGroup.add(
+      this.add
+        .sprite(
+          ROAD_START_X + ROAD_CELL_W * ROAD_COLS - 48 + 272,
+          0,
+          "main",
+          "city.png"
+        )
         .setOrigin(0, 0)
-        .setScale(0.5);
-      this.fences[i].visible = false;
-
-      this.roadGroup.add(this.fences[i]);
-    }
+        .setFlipX(true)
+    );
 
     this.chicken = this.add
       .sprite(CHICKEN_START_X, CHICKEN_START_Y, "chicken")
       .setOrigin(0, 0)
       .setScale(0.75);
-    this.roadGroup.add(this.chicken);
 
     this.ghoust = this.add
       .sprite(CHICKEN_START_X, CHICKEN_START_Y, "chicken")
@@ -276,6 +290,18 @@ export default class MainGame extends Phaser.Scene {
 
       this.roadGroup.add(this.cars[i]);
     }
+
+    for (let i = 0; i < ROAD_COLS; i++) {
+      this.fences[i] = this.add
+        .sprite(FENCE_DELTA_X + ROAD_CELL_W * i, -100, "main", "fence.png")
+        .setOrigin(0, 0)
+        .setScale(0.5);
+      this.fences[i].visible = false;
+
+      this.roadGroup.add(this.fences[i]);
+    }
+
+    this.roadGroup.add(this.chicken);
 
     for (let i = 0; i < ROAD_COLS; i++)
       this.carsTween[i] = this.tweens.add({
@@ -584,6 +610,26 @@ export default class MainGame extends Phaser.Scene {
     //this.uiGroup.add(this.soundIcon);
     this.roadGroup.y = 100;
 
+    if (this.scale.width > this.scale.height) {
+      this.roadGroup.setScale(1.5);
+      this.roadGroup.y = -100;
+    }
+
+    this.cover = this.add
+      .rectangle(
+        this.cameras.main.width / 2, // x (центр)
+        this.cameras.main.height / 2, // y (центр)
+        10 * this.cameras.main.width, // ширина
+        10 * this.cameras.main.height, // высота
+        0x000000, // цвет (любой, мы сделаем прозрачным)
+        0.5 // альфа = 0 → полностью прозрачный
+      )
+      .setOrigin(0.5)
+      .setInteractive() // делаем его интерактивным
+      .setScrollFactor(0); // чтобы не двигался с камерой (опционально)
+
+    this.uiGroup.add(this.cover);
+
     const tutorialScale =
       this.scale.width > this.scale.height
         ? 1
@@ -611,19 +657,6 @@ export default class MainGame extends Phaser.Scene {
       // repeat: 3,                     // например, 3 раза туда-обратно
     });
 
-    this.cover = this.add
-      .rectangle(
-        this.cameras.main.width / 2, // x (центр)
-        this.cameras.main.height / 2, // y (центр)
-        10*this.cameras.main.width, // ширина
-        10*this.cameras.main.height, // высота
-        0x000000, // цвет (любой, мы сделаем прозрачным)
-        0.5 // альфа = 0 → полностью прозрачный
-      )
-      .setOrigin(0.5)
-      .setInteractive() // делаем его интерактивным
-      .setScrollFactor(0); // чтобы не двигался с камерой (опционально)
-
     // Добавляем обработчик тапа
     this.cover.on("pointerdown", (pointer) => {
       if (!this.isTutorial && this.isWaitStart) {
@@ -641,7 +674,7 @@ export default class MainGame extends Phaser.Scene {
     //this.startMoneyAddScreen();
     //this.startFinalScreen(true);
     //this.startPush();
-      this.scale.on('resize', this.resizeGame, this);
+    this.scale.on("resize", this.resizeGame, this);
   }
 
   onThirdStep() {
@@ -737,19 +770,21 @@ export default class MainGame extends Phaser.Scene {
     }
   }
 
-  resizeGame()
-  {
-
+  resizeGame() {
     this.gameContainer.setScale(this.scale.height / 900);
     this.centerX = (0.5 * this.scale.width * 900) / this.scale.height;
 
+    if (this.scale.width > this.scale.height) {
+      this.roadGroup.setScale(1.5);
+      this.roadGroup.y = -100;
+    } else this.roadGroup.y = 100;
+
     this.uiPanel.x = this.centerX;
-    this.goBtn.x = this.centerX + 70
+    this.goBtn.x = this.centerX + 70;
     this.cashoutBtn.x = this.centerX - 70;
     this.headBalance.x = this.centerX + 30;
     this.headerSprite.x = this.centerX;
 
-    
     const tutorialScale =
       this.scale.width > this.scale.height
         ? 1
@@ -760,21 +795,19 @@ export default class MainGame extends Phaser.Scene {
 
     //if (this.tutorialHand.visible)
     {
-      this.tutorialHand.x = this.centerX+330;
+      this.tutorialHand.x = this.centerX + 330;
       this.tutorialHand.setScale(tutorialScale);
-      
-    this.handTween = this.tweens.add({
-      targets: this.tutorialHand,
-      x: this.tutorialHand.x - 70,
-      y: this.tutorialHand.y - 70,
-      duration: 700, // 0.5 секунды до точки
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: -1, // бесконечно (или поставь число повторений)
-      
-    });
-    }
 
+      this.handTween = this.tweens.add({
+        targets: this.tutorialHand,
+        x: this.tutorialHand.x - 70,
+        y: this.tutorialHand.y - 70,
+        duration: 700, // 0.5 секунды до точки
+        ease: "Sine.easeInOut", // плавное ускорение/замедление
+        yoyo: true, // возвращается обратно
+        repeat: -1, // бесконечно (или поставь число повторений)
+      });
+    }
   }
 
   onJump(isGhoust: boolean = false) {
@@ -873,20 +906,9 @@ export default class MainGame extends Phaser.Scene {
           });
         } else {
           if (this.activeRoad == 1) {
-            this.cashoutBtn.destroy();
-            this.cashoutBtn = this.add
-              .sprite(
-                this.centerX - 70,
-                240 + ROAD_CELL_H * ROAD_ROWS,
-                "main",
-                "cashout_button.png"
-              )
-              .setOrigin(0.5, 0)
-              .setScale(0.5);
-
-            this.uiGroup.add(this.cashoutBtn);
-
+            this.tutorialHand.visible = true;
             this.headBalance.destroy();
+
             this.cashBalance = this.createRouletteCounter(
               this.cashoutBtn.x - 40,
               this.cashoutBtn.y + 60,
@@ -908,7 +930,8 @@ export default class MainGame extends Phaser.Scene {
             );
             this.uiGroup.add(this.cashBalance);
             this.uiGroup.add(this.headBalance);
-          } else {
+          } else if (this.activeRoad == 2) {
+            this.tutorialHand.visible = true;
             this.cashBalance.destroy();
             this.headBalance.destroy();
             this.cashBalance = this.createRouletteCounter(
@@ -935,6 +958,19 @@ export default class MainGame extends Phaser.Scene {
           }
 
           if (this.activeRoad == 3) {
+            this.cashoutBtn.destroy();
+            this.cashoutBtn = this.add
+              .sprite(
+                this.centerX - 70,
+                240 + ROAD_CELL_H * ROAD_ROWS,
+                "main",
+                "cashout_button.png"
+              )
+              .setOrigin(0.5, 0)
+              .setScale(0.5);
+
+            this.uiGroup.add(this.cashoutBtn);
+
             this.cashBalance.destroy();
             this.headBalance.destroy();
             this.cashBalance = this.createRouletteCounter(
@@ -1049,8 +1085,7 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startWinEffect(x, y) {
-    
-    if (this.isSoundEnable)  this.sound.play("win");
+    if (this.isSoundEnable) this.sound.play("win");
 
     this.startPush();
     this.endEffectAnim = this.add
@@ -1312,8 +1347,7 @@ export default class MainGame extends Phaser.Scene {
         this.coinEmitter.stop();
       });
 
-      if (this.isSoundEnable) 
-        this.sound.play("win");
+      if (this.isSoundEnable) this.sound.play("win");
     }
 
     this.uiGroup.add(this.finalContainer);
@@ -1626,11 +1660,27 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startResultScreen(isWin = true) {
+    this.cover.visible = false;
     this.isResult = true;
     this.tutorialHand.visible = false;
     this.handTween.stop();
-    this.cover.setAlpha(0.5);
-    this.cover.visible = true;
+    this.cover.destroy();
+
+    this.cover = this.add
+      .rectangle(
+        this.cameras.main.width / 2, // x (центр)
+        this.cameras.main.height / 2, // y (центр)
+        10 * this.cameras.main.width, // ширина
+        10 * this.cameras.main.height, // высота
+        0x000000, // цвет (любой, мы сделаем прозрачным)
+        0.5 // альфа = 0 → полностью прозрачный
+      )
+      .setOrigin(0.5)
+      .setInteractive() // делаем его интерактивным
+      .setScrollFactor(0); // чтобы не двигался с камерой (опционально)
+
+    this.uiGroup.add(this.cover);
+
     if (isWin) this.startWinEffect(this.centerX, 425);
     else this.startLoseEffect(this.centerX, 425);
   }

@@ -7,11 +7,15 @@ const config: Phaser.Types.Core.GameConfig = {
     parent: "chicken-road",
     backgroundColor: "#ffffff",
     scene: [MainGame],
+    
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: window.innerWidth,
         height: window.innerHeight,
+    },
+	 render: {
+        roundPixels: true  // ← Вот это ключевое!
     },
 };
 
