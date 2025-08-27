@@ -69,6 +69,7 @@ export default class MainGame extends Phaser.Scene {
   onlineSprite: Phaser.GameObjects.Sprite;
   usernameSprite: Phaser.GameObjects.Sprite;
   soundIcon: Phaser.GameObjects.Sprite;
+  roadSound: Phaser.Sound.BaseSound;
 
   chicken: Phaser.GameObjects.Sprite;
   ghoust: Phaser.GameObjects.Sprite;
@@ -109,6 +110,10 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("win", "sounds/02_win.mp3");
     this.load.audio("bank1", "sounds/03_bank1.mp3");
     this.load.audio("bank3", "sounds/03_bank3.mp3");
+    this.load.audio("beep", "sounds/06_beep.mp3");
+    this.load.audio("chicken", "sounds/05_noise.mp3");
+    this.load.audio("road", "sounds/roadamb.mp3");
+
     this.load.image("packshot_arca", "/assets/packshot_arca.png");
     this.load.image("bg4", "/assets/background_4.png");
     this.load.image("bg3", "/assets/background_3.png");
@@ -133,6 +138,7 @@ export default class MainGame extends Phaser.Scene {
 
   create() {
     this.scaleValue = getScaleValue(this);
+    this.sound.volume = 0.4;
 
     //this.cameras.main.setViewport(0, 0, 800, 1200); // x, y, width, height
 
@@ -556,12 +562,12 @@ export default class MainGame extends Phaser.Scene {
     });
 
     this.topBg = this.add.graphics();
-    this.topBg.fillStyle(0x000000, 1);
+    this.topBg.fillStyle(0x242425, 1);
     this.topBg.fillRect(0, 0, 2000, 100); // x, y, ширина, высота
     this.uiGroup.add(this.topBg);
 
     this.bottomBg = this.add.graphics();
-    this.bottomBg.fillStyle(0x000000, 1);
+    this.bottomBg.fillStyle(0x242425, 1);
     this.bottomBg.fillRect(0, 100 + ROAD_CELL_H * ROAD_ROWS, 2000, 1000); // x, y, ширина, высота
     this.uiGroup.add(this.bottomBg);
 
@@ -582,7 +588,7 @@ export default class MainGame extends Phaser.Scene {
     );
 
     this.usernameSprite = this.add
-      .sprite(0, 140, "main", "europe/eur_bottom_1.png")
+      .sprite(0, 150, "main", "europe/eur_bottom_1.png")
       .setOrigin(0, 0);
 
     this.time.addEvent({
@@ -671,6 +677,11 @@ export default class MainGame extends Phaser.Scene {
       }
     });
 
+    this.roadSound = this.sound.add("road");
+    this.roadSound.play({
+      loop: true,
+    });
+
     //this.startMoneyAddScreen();
     //this.startFinalScreen(true);
     //this.startPush();
@@ -725,6 +736,16 @@ export default class MainGame extends Phaser.Scene {
       duration: 200,
     });
 
+    for (let i = 0; i < 3; i++) {
+      this.roadGroup.remove(this.cars[i]);
+      this.roadGroup.add(this.cars[i]);
+      this.roadGroup.remove(this.fences[i]);
+      this.roadGroup.add(this.fences[i]);
+    }
+
+    this.roadGroup.remove(this.chicken);
+    this.roadGroup.add(this.chicken);
+
     this.tutorialHand.x = this.goBtn.x + 100;
     this.tutorialHand.y = this.goBtn.y + 100;
     this.tutorialHand.visible = true;
@@ -777,7 +798,10 @@ export default class MainGame extends Phaser.Scene {
     if (this.scale.width > this.scale.height) {
       this.roadGroup.setScale(1.5);
       this.roadGroup.y = -100;
-    } else this.roadGroup.y = 100;
+    } else {
+      this.roadGroup.y = 100;
+      this.roadGroup.setScale(1);
+    }
 
     this.uiPanel.x = this.centerX;
     this.goBtn.x = this.centerX + 70;
@@ -824,6 +848,13 @@ export default class MainGame extends Phaser.Scene {
     this.isJumping = true;
 
     if (this.activeRoad > 0) {
+      this.roadGroup.remove(this.mcovers[this.activeRoad - 1]);
+      this.roadGroup.add(this.mcovers[this.activeRoad - 1]);
+      this.roadGroup.remove(this.chicken);
+      this.roadGroup.add(this.chicken);
+      this.roadGroup.remove(this.ghoust);
+      this.roadGroup.add(this.ghoust);
+
       this.coversSprite[this.activeRoad - 1].play("coin");
       this.mcovers[this.activeRoad - 1].setScale(0.8);
 
@@ -1003,6 +1034,7 @@ export default class MainGame extends Phaser.Scene {
             this.chicken.x = this.chicken.x + ROAD_CELL_W / 2;
             this.chicken.y += ROAD_CELL_H * 2;
             this.chicken.setTexture("main", "dead_chicken.png");
+            if (this.isSoundEnable) this.sound.play("beep");
 
             this.time.delayedCall(
               1000,
@@ -1164,7 +1196,7 @@ export default class MainGame extends Phaser.Scene {
     console.log(this.scale.width, this.scale.height, this.gameContainer.scale);
 
     this.pushSprite = this.add
-      .sprite(this.centerX, 50 + 30 * scalePush, "ui", "push.png")
+      .sprite(this.centerX, 50 + 30 * scalePush, "ui", "push_europe.png")
       .setOrigin(0.5, 0.5)
       .setScale(0);
 
@@ -1247,6 +1279,7 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startLoseEffect(x, y) {
+    if (this.isSoundEnable) this.sound.play("chicken");
     this.coinEmitter = this.add.particles(x, y, "main", {
       anim: "loseeffect",
       quantity: 1,
@@ -1290,6 +1323,8 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startFinalScreen(isWin = false) {
+    this.roadSound.stop();
+
     this.finalContainer = this.add.container();
     this.finalContainer.y = -1000;
     this.finalBG = this.add
@@ -1304,14 +1339,14 @@ export default class MainGame extends Phaser.Scene {
       .setOrigin(0.5, 1)
       .setScale(0.7);
     this.finalFooter = this.add
-      .sprite(this.centerX, 900, "ui", "packshot_footer.png")
+      .sprite(Math.round(this.centerX), 900, "ui", "packshot_footer.png")
       .setOrigin(0.5, 1);
     this.finalChicken = this.add
       .sprite(this.centerX, 400, "ui", "packshot_chicken.png")
       .setOrigin(0.5, 0.5)
       .setScale(0.6);
     this.finalBtn = this.add
-      .sprite(this.centerX, 630, "ui", "packshot_button.png")
+      .sprite(Math.round(this.centerX), 630, "ui", "packshot_button.png")
       .setOrigin(0.5, 0.5)
       .setScale(0.55);
     this.finalCoin1 = this.add
@@ -1440,6 +1475,7 @@ export default class MainGame extends Phaser.Scene {
 
   startMoneyAddScreen() {
     //this.cover.visible = false;
+    this.roadSound.stop();
 
     const bankScale =
       this.scale.width > this.scale.height
