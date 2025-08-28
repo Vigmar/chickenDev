@@ -949,7 +949,7 @@ export default class MainGame extends Phaser.Scene {
               this.cashoutBtn.y + 60,
               0.3,
               0,
-              171,
+              150,
               1000,
               false,
               "black"
@@ -959,7 +959,7 @@ export default class MainGame extends Phaser.Scene {
               50,
               0.3,
               0,
-              171,
+              150,
               1000,
               false
             );
@@ -973,8 +973,8 @@ export default class MainGame extends Phaser.Scene {
               this.cashoutBtn.x - 40,
               this.cashoutBtn.y + 60,
               0.3,
-              171,
-              373,
+              150,
+              321,
               1000,
               false,
               "black"
@@ -983,8 +983,8 @@ export default class MainGame extends Phaser.Scene {
               this.centerX + 20,
               50,
               0.3,
-              171,
-              373,
+              150,
+              321,
               1000,
               false
             );
@@ -1012,8 +1012,8 @@ export default class MainGame extends Phaser.Scene {
               this.cashoutBtn.x - 40,
               this.cashoutBtn.y + 60,
               0.3,
-              373,
-              610,
+              321,
+              523,
               1000,
               false,
               "black"
@@ -1022,8 +1022,8 @@ export default class MainGame extends Phaser.Scene {
               this.centerX + 20,
               50,
               0.3,
-              373,
-              610,
+              321,
+              523,
               1000,
               false
             );
@@ -1681,7 +1681,7 @@ export default class MainGame extends Phaser.Scene {
       425 - 250 * bankScale,
       0.6 * bankScale,
       0,
-      2323,
+      523,
       2000
     );
     this.moneyAddContainer.add(this.moneyBalance);
