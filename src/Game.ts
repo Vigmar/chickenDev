@@ -555,8 +555,12 @@ export default class MainGame extends Phaser.Scene {
     this.soundIcon.on("pointerdown", (pointer) => {
       this.isSoundEnable = !this.isSoundEnable;
       if (this.isSoundEnable) {
+        this.roadSound.play({
+      loop: true,
+    });
         this.soundIcon.setTexture("main", "sound_button.png");
       } else {
+        this.roadSound.stop();
         this.soundIcon.setTexture("main", "sound_button_off.png");
       }
     });
