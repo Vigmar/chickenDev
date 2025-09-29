@@ -975,9 +975,9 @@ export default class MainGame extends Phaser.Scene {
     this.tutorialHand.visible = false;
     this.uiGroup.remove(this.cashBalance);
     
-
     const cameraX = this.cameras.main.scrollX - ROAD_CELL_W;
 
+    if (this.scale.width < this.scale.height)
     this.tweens.add({
       targets: this.cameras.main,
       scrollX: cameraX,
@@ -1028,22 +1028,6 @@ export default class MainGame extends Phaser.Scene {
       targets: this.chicken,
       scale: 0.75,
       duration: FENCE_MOVE_TIME,
-    });
-
-    this.backEffect = this.add
-      .sprite(this.centerX, 450, "wheel", "VFXrewind.png")
-      .setOrigin(0.5, 0.5)
-      .setScale(10);
-    this.uiGroup.add(this.backEffect);
-    this.backEffect.setAlpha(0.5);
-
-    this.tweens.add({
-      targets: this.backEffect,
-      alpha: 0,
-      duration: 100,
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: 10, // бесконечно (или поставь число повторений)
     });
 
     const finalX = this.chicken.x - ROAD_CELL_W;
@@ -1104,6 +1088,23 @@ export default class MainGame extends Phaser.Scene {
         console.log("RRRR");
       this.startResultScreen();
     });
+
+    this.backEffect = this.add
+      .sprite(this.centerX, 450, "wheel", "VFXrewind.jpg")
+      .setOrigin(0.5, 0.5)
+      .setScale(2);
+    this.uiGroup.add(this.backEffect);
+    this.backEffect.setAlpha(0.5);
+
+     this.tweens.add({
+      targets: this.backEffect,
+      alpha: 0,
+      duration: 100,
+      ease: "Sine.easeInOut", // плавное ускорение/замедление
+      yoyo: true, // возвращается обратно
+      repeat: 10, // бесконечно (или поставь число повторений)
+    });
+
   }
 
   onTimeBackWait() {
