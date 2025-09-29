@@ -1013,10 +1013,12 @@ export default class MainGame extends Phaser.Scene {
     );
 
     this.chicken.play("idle");
-    this.chicken.x = CHICKEN_START_X+ROAD_CELL_W*4;
-    this.chicken.y = CHICKEN_START_Y;
+    this.chicken.x = CHICKEN_START_X+ROAD_CELL_W*4+100;
+    this.chicken.y = CHICKEN_START_Y+100;
+    this.chicken.setOrigin(0.5,0.5);
     this.isJumping = true;
     this.chicken.setScale(0);
+    
 
     this.tweens.add({
       targets: this.chicken,
@@ -1041,6 +1043,7 @@ export default class MainGame extends Phaser.Scene {
     });
 
     const finalX = this.chicken.x - ROAD_CELL_W;
+    
     const jumpHeight = 50;
 
     this.tweens.add({
