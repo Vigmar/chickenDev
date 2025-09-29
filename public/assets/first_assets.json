@@ -169,7 +169,7 @@
 	"sourceSize": {"w":128,"h":128}
 },
 {
-	"filename": "covers/150.png",
+	"filename": "covers/1.png",
 	"frame": {"x":0,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -177,7 +177,7 @@
 	"sourceSize": {"w":122,"h":127}
 },
 {
-	"filename": "covers/321.png",
+	"filename": "covers/2.png",
 	"frame": {"x":122,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -185,7 +185,7 @@
 	"sourceSize": {"w":122,"h":127}
 },
 {
-	"filename": "covers/523.png",
+	"filename": "covers/3.png",
 	"frame": {"x":244,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -193,7 +193,7 @@
 	"sourceSize": {"w":122,"h":127}
 },
 {
-	"filename": "covers/756.png",
+	"filename": "covers/4.png",
 	"frame": {"x":366,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -201,7 +201,7 @@
 	"sourceSize": {"w":122,"h":127}
 },
 {
-	"filename": "covers/1020.png",
+	"filename": "covers/5.png",
 	"frame": {"x":488,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -209,7 +209,7 @@
 	"sourceSize": {"w":122,"h":127}
 },
 {
-	"filename": "covers/1315.png",
+	"filename": "covers/6.png",
 	"frame": {"x":610,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -217,7 +217,7 @@
 	"sourceSize": {"w":122,"h":127}
 },
 {
-	"filename": "covers/1641.png",
+	"filename": "covers/7.png",
 	"frame": {"x":732,"y":180,"w":122,"h":127},
 	"rotated": false,
 	"trimmed": false,
@@ -233,7 +233,7 @@
 	"sourceSize": {"w":121,"h":108}
 },
 {
-	"filename": "europe/eur_bottom_1.png",
+	"filename": "europe/az_bottom_1.png",
 	"frame": {"x":60,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -241,7 +241,7 @@
 	"sourceSize": {"w":256,"h":58}
 },
 {
-	"filename": "europe/eur_bottom_2.png",
+	"filename": "europe/az_bottom_2.png",
 	"frame": {"x":316,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -249,7 +249,7 @@
 	"sourceSize": {"w":256,"h":58}
 },
 {
-	"filename": "europe/eur_bottom_3.png",
+	"filename": "europe/az_bottom_3.png",
 	"frame": {"x":572,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -257,7 +257,7 @@
 	"sourceSize": {"w":256,"h":58}
 },
 {
-	"filename": "europe/eur_bottom_4.png",
+	"filename": "europe/az_bottom_4.png",
 	"frame": {"x":828,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -265,7 +265,7 @@
 	"sourceSize": {"w":256,"h":58}
 },
 {
-	"filename": "europe/eur_bottom_5.png",
+	"filename": "europe/az_bottom_5.png",
 	"frame": {"x":1084,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -273,7 +273,7 @@
 	"sourceSize": {"w":256,"h":58}
 },
 {
-	"filename": "europe/eur_bottom_6.png",
+	"filename": "europe/az_bottom_6.png",
 	"frame": {"x":1340,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -281,7 +281,7 @@
 	"sourceSize": {"w":256,"h":58}
 },
 {
-	"filename": "europe/eur_bottom_7.png",
+	"filename": "europe/az_bottom_7.png",
 	"frame": {"x":1596,"y":0,"w":256,"h":58},
 	"rotated": false,
 	"trimmed": false,
@@ -631,6 +631,6 @@
 	"format": "RGBA8888",
 	"size": {"w":2048,"h":2010},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:fb38ef8e5ca389eecfda32c0fa5240a7:7d39797861cbd5d457c4891c0650fa3c:13d9a01787a02237983d4470ed88d06f$"
+	"smartupdate": "$TexturePacker:SmartUpdate:72e65035270b47e6ca020cae66c73ea8:8ad38df90ccd11da630ba1ba00021333:13d9a01787a02237983d4470ed88d06f$"
 }
 }
