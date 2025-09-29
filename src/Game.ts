@@ -1093,6 +1093,11 @@ export default class MainGame extends Phaser.Scene {
     this.goBtn.visible = false;
     this.cashoutBtn.visible = false;
 
+    const tutorialScale =
+      this.scale.width > this.scale.height
+        ? 1
+        : this.scale.width / this.scale.height;
+
     this.backBtn = this.add
       .sprite(
         this.centerX,
@@ -1104,8 +1109,16 @@ export default class MainGame extends Phaser.Scene {
       .setScale(0.5);
 
     this.uiGroup.add(this.backBtn);
-    this.uiGroup.remove(this.tutorialHand);
+
+    this.tutorialHand.destroy();
+
+    this.tutorialHand = this.add
+      .sprite(this.centerX, 250, "ui", "tutor_hand.png")
+      .setAngle(-45)
+      .setScale(tutorialScale);
+      
     this.uiGroup.add(this.tutorialHand);
+
 
     /*
     this.tweens.add({
@@ -1672,17 +1685,49 @@ export default class MainGame extends Phaser.Scene {
 
     if (isWin)
       this.endPanel = this.add
-        .sprite(0, 0, "ui", round==0?"win2.png":"win.png")
+        .sprite(0, 0, "ui", this.gameRound==0?"win2.png":"win.png")
         .setOrigin(0.5, 0.5)
         .setScale(0);
     else
+    {
       this.endPanel = this.add
         .sprite(0, 0, "wheel", "bonus live.png")
         .setOrigin(0.5, 0.5)
         .setScale(0);
 
+        this.tutorialHand = this.add
+      .sprite(
+        80,
+        90,
+        "ui",
+        "tutor_hand.png"
+      )
+      .setAngle(-45)
+      .setScale(0.5);
+
+    this.tutorialHand.visible = true;
+    
+
+    this.handTween = this.tweens.add({
+      targets: this.tutorialHand,
+      x: this.tutorialHand.x - 50,
+      y: this.tutorialHand.y - 50,
+      duration: 600,
+      ease: "Sine.easeInOut", // плавное ускорение/замедление
+      yoyo: true, // возвращается обратно
+      repeat: -1, // бесконечно (или поставь число повторений)
+      // repeat: 3,                     // например, 3 раза туда-обратно
+    });
+
+
+
+    }
+
     this.uiGroup.add(this.endPanelContainer);
     this.endPanelContainer.add(this.endPanel);
+
+    if (!isWin)
+      this.endPanelContainer.add(this.tutorialHand);
 
     this.endPanelTween = this.tweens.add({
       targets: this.endPanel,
