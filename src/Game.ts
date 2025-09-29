@@ -697,14 +697,14 @@ export default class MainGame extends Phaser.Scene {
     this.uiGroup.add(this.tutorialText);
 
     this.tutorialHand = this.add
-      .sprite(this.centerX, 250, "ui", "tutor_hand.png")
+      .sprite(this.centerX+50, 270, "ui", "tutor_hand.png")
       .setAngle(-45)
       .setScale(tutorialScale);
     this.uiGroup.add(this.tutorialHand);
 
     this.handTween = this.tweens.add({
       targets: this.tutorialHand,
-      x: this.tutorialHand.x - 20,
+      x: this.tutorialHand.x - 30,
       y: this.tutorialHand.y - 50,
       duration: 700, // 0.5 секунды до точки
       ease: "Sine.easeInOut", // плавное ускорение/замедление
@@ -972,29 +972,34 @@ export default class MainGame extends Phaser.Scene {
     this.mcovers[3].visible = true;
     this.mcovers[3].setScale(1);
     this.gameRound = 2;
+    this.tutorialHand.visible = false;
+    this.uiGroup.remove(this.cashBalance);
+    
 
     const cameraX = this.cameras.main.scrollX - ROAD_CELL_W;
 
     this.tweens.add({
       targets: this.cameras.main,
       scrollX: cameraX,
-      duration: 200,
+      duration: 500,
+      delay: 500,
     });
 
     if (this.isSoundEnable) this.sound.play("rewind");
 
-      this.cashoutBtn.destroy();
-            this.cashoutBtn = this.add
-              .sprite(
-                this.centerX - 70,
-                240 + ROAD_CELL_H * ROAD_ROWS,
-                "main",
-                "cashout_button.png"
-              )
-              .setOrigin(0.5, 0)
-              .setScale(0.5);
+    this.cashoutBtn.destroy();
+    this.cashoutBtn = this.add
+      .sprite(
+        this.centerX - 70,
+        240 + ROAD_CELL_H * ROAD_ROWS,
+        "main",
+        "cashout_button.png"
+      )
+      .setOrigin(0.5, 0)
+      .setScale(0.5);
 
     this.uiGroup.add(this.cashoutBtn);
+    this.uiGroup.add(this.cashBalance);
 
     this.cars[3].y = -400;
     this.carsTween[3] = this.tweens.add({
@@ -1013,12 +1018,11 @@ export default class MainGame extends Phaser.Scene {
     );
 
     this.chicken.play("idle");
-    this.chicken.x = CHICKEN_START_X+ROAD_CELL_W*4+100;
-    this.chicken.y = CHICKEN_START_Y+100;
-    this.chicken.setOrigin(0.5,0.5);
+    this.chicken.x = CHICKEN_START_X + ROAD_CELL_W * 4 + 100;
+    this.chicken.y = CHICKEN_START_Y + 100;
+    this.chicken.setOrigin(0.5, 0.5);
     this.isJumping = true;
     this.chicken.setScale(0);
-    
 
     this.tweens.add({
       targets: this.chicken,
@@ -1043,7 +1047,7 @@ export default class MainGame extends Phaser.Scene {
     });
 
     const finalX = this.chicken.x - ROAD_CELL_W;
-    
+
     const jumpHeight = 50;
 
     this.tweens.add({
@@ -1068,6 +1072,23 @@ export default class MainGame extends Phaser.Scene {
         this.chicken.play("idle");
         this.backEffect.destroy();
 
+        this.tutorialHand.x = this.cashoutBtn.x + 100;
+        this.tutorialHand.y = this.cashoutBtn.y + 100;
+        this.tutorialHand.visible = true;
+
+        this.uiGroup.remove(this.tutorialHand);
+        this.uiGroup.add(this.tutorialHand);
+
+        this.handTween = this.tweens.add({
+          targets: this.tutorialHand,
+          x: this.tutorialHand.x - 30,
+          y: this.tutorialHand.y - 30,
+          duration: 700, // 0.5 секунды до точки
+          ease: "Sine.easeInOut", // плавное ускорение/замедление
+          yoyo: true, // возвращается обратно
+          repeat: -1, // бесконечно (или поставь число повторений)
+          // repeat: 3,                     // например, 3 раза туда-обратно
+        });
       },
     });
 
@@ -1077,8 +1098,6 @@ export default class MainGame extends Phaser.Scene {
 
     this.goBtn.setInteractive(false);
     this.cashoutBtn.setInteractive();
-
-
 
     this.cashoutBtn.on("pointerdown", (pointer) => {
       if (!this.isJumping && this.activeRoad == 3 && this.gameRound == 2)
@@ -1116,9 +1135,8 @@ export default class MainGame extends Phaser.Scene {
       .sprite(this.centerX, 250, "ui", "tutor_hand.png")
       .setAngle(-45)
       .setScale(tutorialScale);
-      
-    this.uiGroup.add(this.tutorialHand);
 
+    this.uiGroup.add(this.tutorialHand);
 
     /*
     this.tweens.add({
@@ -1341,7 +1359,7 @@ export default class MainGame extends Phaser.Scene {
             this.cashoutBtn.y + 60,
             0.3,
             0,
-            this.coversText[0],
+            this.gameRound==0?750:this.coversText[0],
             1000,
             false,
             "black"
@@ -1351,7 +1369,7 @@ export default class MainGame extends Phaser.Scene {
             50,
             0.3,
             0,
-            this.coversText[0],
+            this.gameRound==0?750:this.coversText[0],
             1000,
             false
           );
@@ -1366,8 +1384,8 @@ export default class MainGame extends Phaser.Scene {
             this.cashoutBtn.x - 40,
             this.cashoutBtn.y + 60,
             0.3,
-            this.coversText[0],
-            this.coversText[1],
+            this.gameRound==0?750:this.coversText[0],
+            this.gameRound==0?1800:this.coversText[1],
             1000,
             false,
             "black"
@@ -1376,8 +1394,8 @@ export default class MainGame extends Phaser.Scene {
             this.centerX + 20,
             50,
             0.3,
-            this.coversText[0],
-            this.coversText[1],
+            this.gameRound==0?7500:this.coversText[0],
+            this.gameRound==0?1800:this.coversText[1],
             1000,
             false
           );
@@ -1408,8 +1426,8 @@ export default class MainGame extends Phaser.Scene {
             this.cashoutBtn.x - 40,
             this.cashoutBtn.y + 60,
             0.3,
-            this.coversText[1],
-            this.coversText[2],
+            this.gameRound==0?1800:this.coversText[1],
+            this.gameRound==0?3000:this.coversText[2],
             1000,
             false,
             "black"
@@ -1418,8 +1436,8 @@ export default class MainGame extends Phaser.Scene {
             this.centerX + 20,
             50,
             0.3,
-            this.coversText[1],
-            this.coversText[2],
+            this.gameRound==0?1800:this.coversText[1],
+            this.gameRound==0?3000:this.coversText[2],
             1000,
             false
           );
@@ -1685,49 +1703,38 @@ export default class MainGame extends Phaser.Scene {
 
     if (isWin)
       this.endPanel = this.add
-        .sprite(0, 0, "ui", this.gameRound==0?"win2.png":"win.png")
+        .sprite(0, 0, "ui", this.gameRound == 0 ? "win2.png" : "win.png")
         .setOrigin(0.5, 0.5)
         .setScale(0);
-    else
-    {
+    else {
       this.endPanel = this.add
         .sprite(0, 0, "wheel", "bonus live.png")
         .setOrigin(0.5, 0.5)
         .setScale(0);
 
-        this.tutorialHand = this.add
-      .sprite(
-        80,
-        90,
-        "ui",
-        "tutor_hand.png"
-      )
-      .setAngle(-45)
-      .setScale(0.5);
+      this.tutorialHand = this.add
+        .sprite(80, 90, "ui", "tutor_hand.png")
+        .setAngle(-45)
+        .setScale(0.5);
 
-    this.tutorialHand.visible = true;
-    
+      this.tutorialHand.visible = true;
 
-    this.handTween = this.tweens.add({
-      targets: this.tutorialHand,
-      x: this.tutorialHand.x - 50,
-      y: this.tutorialHand.y - 50,
-      duration: 600,
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: -1, // бесконечно (или поставь число повторений)
-      // repeat: 3,                     // например, 3 раза туда-обратно
-    });
-
-
-
+      this.handTween = this.tweens.add({
+        targets: this.tutorialHand,
+        x: this.tutorialHand.x - 50,
+        y: this.tutorialHand.y - 50,
+        duration: 600,
+        ease: "Sine.easeInOut", // плавное ускорение/замедление
+        yoyo: true, // возвращается обратно
+        repeat: -1, // бесконечно (или поставь число повторений)
+        // repeat: 3,                     // например, 3 раза туда-обратно
+      });
     }
 
     this.uiGroup.add(this.endPanelContainer);
     this.endPanelContainer.add(this.endPanel);
 
-    if (!isWin)
-      this.endPanelContainer.add(this.tutorialHand);
+    if (!isWin) this.endPanelContainer.add(this.tutorialHand);
 
     this.endPanelTween = this.tweens.add({
       targets: this.endPanel,
@@ -1979,9 +1986,11 @@ export default class MainGame extends Phaser.Scene {
         ? 1
         : this.scale.width / this.scale.height;
     this.moneyAddContainer = this.add.container();
+
     this.moneyAddBG = this.add
       .sprite(this.centerX, 450, "bg4")
       .setOrigin(0.5, 0.5);
+
     this.moneyAddBG.scaleX =
       (this.scale.width / 1280) * (900 / this.scale.height);
     this.moneyAddBG.scaleY =
@@ -1991,9 +2000,9 @@ export default class MainGame extends Phaser.Scene {
     this.moneyAddContainer.add(this.moneyAddBG);
 
     this.bankUI1 = this.add
-      .sprite(this.centerX, 445, "ui", "bank_ui_1.png")
+      .sprite(this.centerX, 460, "ui", "bank_ui_1.png")
       .setOrigin(0.5, 0.5)
-      .setScale(0.8 * bankScale);
+      .setScale(bankScale*0.9);
     this.bankUI2 = this.add
       .sprite(this.centerX, 880, "ui", "bank_ui_2.png")
       .setOrigin(0.5, 1)
@@ -2002,29 +2011,34 @@ export default class MainGame extends Phaser.Scene {
       .sprite(this.centerX, 20, "ui", "bank_ui_3.png")
       .setOrigin(0.5, 0)
       .setScale(bankScale);
+    
+    this.moneyAddContainer.add(this.bankUI3);
     this.moneyAddContainer.add(this.bankUI1);
     this.moneyAddContainer.add(this.bankUI2);
-    this.moneyAddContainer.add(this.bankUI3);
 
     const startDelay = 500;
 
+    const startY = 0;
+    const dy = 100;
+    const chIconScale = 0.9;
+
     this.chicon1 = this.add
-      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch1.png")
+      .sprite(this.centerX, 445 + startY * bankScale, "ui", "rch1.png")
       .setOrigin(0.5, 0.5)
-      .setScale(0.8 * bankScale);
+      .setScale(bankScale * chIconScale);
 
     this.chicon2 = this.add
-      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch2.png")
+      .sprite(this.centerX, 445 + startY * bankScale, "ui", "rch2.png")
       .setOrigin(0.5, 0.5)
       .setScale(0);
 
     this.chicon3 = this.add
-      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch3.png")
+      .sprite(this.centerX, 445 + startY * bankScale, "ui", "rch3.png")
       .setOrigin(0.5, 0.5)
       .setScale(0);
 
     this.chicon4 = this.add
-      .sprite(this.centerX, 445 + 40 * bankScale, "ui", "rch3.png")
+      .sprite(this.centerX, 445 + startY * bankScale, "ui", "rch3.png")
       .setOrigin(0.5, 0.5)
       .setScale(0);
 
@@ -2037,7 +2051,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon1,
-      y: 445 + 110 * bankScale,
+      y: 445 + (startY + dy) * bankScale,
       duration: 300,
       delay: startDelay,
       ease: "Sine.easeInOut",
@@ -2047,7 +2061,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon1,
-      y: 445 + 180 * bankScale,
+      y: 445 + (startY + 2 * dy) * bankScale,
       duration: 300,
       delay: 1000 + startDelay,
       ease: "Sine.easeInOut",
@@ -2056,7 +2070,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon1,
-      y: 445 + 250 * bankScale,
+      y: 445 + (startY + 3 * dy) * bankScale,
       duration: 300,
       delay: 1500 + startDelay,
       ease: "Sine.easeInOut",
@@ -2065,7 +2079,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon1,
-      y: 445 + 110 * bankScale,
+      y: 445 + (startY + dy) * bankScale,
       duration: 300,
       delay: 500 + startDelay,
       ease: "Sine.easeInOut",
@@ -2075,7 +2089,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon2,
-      scale: 0.88 * bankScale,
+      scale: 1.1 * bankScale * chIconScale,
       duration: 100,
       delay: 300 + startDelay,
       ease: "Sine.easeInOut",
@@ -2088,7 +2102,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon2,
-      scale: 0.8 * bankScale,
+      scale: bankScale * chIconScale,
       duration: 100,
       delay: 400 + startDelay,
       ease: "Sine.easeInOut",
@@ -2097,7 +2111,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon2,
-      y: 445 + 110 * bankScale,
+      y: 445 + (startY + dy) * bankScale,
       duration: 300,
       delay: 1000 + startDelay,
       ease: "Sine.easeInOut",
@@ -2106,7 +2120,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon2,
-      y: 445 + 180 * bankScale,
+      y: 445 + (startY + 2 * dy) * bankScale,
       duration: 300,
       delay: 1500 + startDelay,
       ease: "Sine.easeInOut",
@@ -2115,7 +2129,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon3,
-      scale: 0.88 * bankScale,
+      scale: 1.1 * bankScale * chIconScale,
       duration: 100,
       delay: 1300 + startDelay,
       ease: "Sine.easeInOut",
@@ -2128,7 +2142,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon3,
-      scale: 0.8 * bankScale,
+      scale: bankScale * chIconScale,
       duration: 100,
       delay: 1400 + startDelay,
       ease: "Sine.easeInOut",
@@ -2136,7 +2150,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon3,
-      y: 445 + 110 * bankScale,
+      y: 445 + (startY + dy) * bankScale,
       duration: 300,
       delay: 1500 + startDelay,
       ease: "Sine.easeInOut",
@@ -2144,7 +2158,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon4,
-      scale: 0.88 * bankScale,
+      scale: 1.1 * bankScale * chIconScale,
       duration: 100,
       delay: 1800 + startDelay,
       ease: "Sine.easeInOut",
@@ -2153,7 +2167,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.chicon4,
-      scale: 0.8 * bankScale,
+      scale: bankScale * chIconScale,
       duration: 100,
       delay: 1900 + startDelay,
       ease: "Sine.easeInOut",
@@ -2171,7 +2185,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.moneyBalance = this.createRouletteCounter(
       this.centerX - 50,
-      425 - 150 * bankScale,
+      425 - 200 * bankScale,
       0.6 * bankScale,
       0,
       this.coversText[2],
