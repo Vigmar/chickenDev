@@ -43,6 +43,7 @@ export default class MainGame extends Phaser.Scene {
   cars: Phaser.GameObjects.Sprite[];
   carsTween: Phaser.Tweens.Tween[];
   fences: Phaser.GameObjects.Sprite[];
+  cracks: Phaser.GameObjects.Sprite[];
   particlesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
   goBtn: Phaser.GameObjects.Sprite;
 
@@ -75,7 +76,6 @@ export default class MainGame extends Phaser.Scene {
   roadSound: Phaser.Sound.BaseSound;
 
   chicken: Phaser.GameObjects.Sprite;
-  
 
   moneyAddContainer: Phaser.GameObjects.Container;
   moneyAddBG: Phaser.GameObjects.Sprite;
@@ -183,6 +183,7 @@ export default class MainGame extends Phaser.Scene {
     this.coversSprite = [];
     this.coversText = coversText;
     this.fences = [];
+    this.cracks = [];
     this.cars = [];
     this.carsTween = [];
     this.activeRoad = 0;
@@ -284,7 +285,6 @@ export default class MainGame extends Phaser.Scene {
       .setOrigin(0, 0)
       .setScale(0.75);
 
-    
     for (let i = 0; i < ROAD_COLS; i++) {
       this.cars[i] = this.add
         .sprite(
@@ -306,7 +306,16 @@ export default class MainGame extends Phaser.Scene {
         .setScale(0.5);
       this.fences[i].visible = false;
 
-      this.roadGroup.add(this.fences[i]);
+      
+
+      this.cracks[i] = this.add
+        .sprite(FENCE_DELTA_X + ROAD_CELL_W * i+50, FENCE_DELTA_Y+45, "main", "crack.png")
+        .setOrigin(0.5, 0.5)
+        .setScale(0);
+
+        this.roadGroup.add(this.cracks[i]);
+        this.roadGroup.add(this.fences[i]);
+
     }
 
     this.roadGroup.add(this.chicken);
@@ -322,8 +331,6 @@ export default class MainGame extends Phaser.Scene {
         },
       });
 
-    
-    
     // Создание анимации ожидания
     this.anims.create({
       key: "idle",
@@ -349,7 +356,7 @@ export default class MainGame extends Phaser.Scene {
       repeat: -1, // повторять бесконечно
     });
 
-        this.anims.create({
+    this.anims.create({
       key: "jump",
       frames: [
         { key: "chicken", frame: "chicken_Jump/chicken_frames1000.png" },
@@ -366,7 +373,6 @@ export default class MainGame extends Phaser.Scene {
       repeat: 0, // проиграть один раз (0 = один раз, -1 = бесконечно)
     });
 
-    
     this.anims.create({
       key: "coin",
       frames: [
@@ -502,12 +508,12 @@ export default class MainGame extends Phaser.Scene {
     });
 
     this.topBg = this.add.graphics();
-    this.topBg.fillStyle(0x242425, 1);
+    this.topBg.fillStyle(0x021430, 1);
     this.topBg.fillRect(0, 0, 2000, 100); // x, y, ширина, высота
     this.uiGroup.add(this.topBg);
 
     this.bottomBg = this.add.graphics();
-    this.bottomBg.fillStyle(0x242425, 1);
+    this.bottomBg.fillStyle(0x021430, 1);
     this.bottomBg.fillRect(0, 100 + ROAD_CELL_H * ROAD_ROWS, 2000, 1000); // x, y, ширина, высота
     this.uiGroup.add(this.bottomBg);
 
@@ -674,27 +680,6 @@ export default class MainGame extends Phaser.Scene {
 
     this.activeRoad = 0;
 
-    for (let i = 0; i < 3; i++) {
-      this.fences[i].y = -100;
-      this.cars[i].y = -400;
-      this.carsTween[i] = this.tweens.add({
-        targets: this.cars[i],
-        y: ROAD_CELL_H * ROAD_ROWS + 200,
-        duration: CAR_MOVE_TIME,
-        delay: Math.random() * 500 + 500 * i,
-        onComplete: () => {
-          this.onCarTweenComplete(i);
-        },
-      });
-
-      this.mcovers[i].visible = true;
-      //this.coversText[i].visible = true;
-      this.mcovers[i].setScale(1);
-      this.coversSprite[i].setTexture(
-        "main",
-        "covers/" + coversSprites[i] + ".png"
-      );
-    }
   }
 
   resizeGame() {
@@ -738,37 +723,33 @@ export default class MainGame extends Phaser.Scene {
   }
 
   moveFB() {
-
-    const finalX = this.chicken.x + 50;
+    const finalX = this.chicken.x + 30;
     this.chicken.play("jump");
-    
-      this.tweens.add({
-        targets: this.chicken,
-        x: finalX,
-        duration: 300,
-        ease: "Sine.easeInOut", // плавное ускорение/замедление
-        yoyo: true, // возвращается обратно
-        repeat: 0, // бесконечно (или поставь число повторений)
-         onComplete: () => {
+
+    this.tweens.add({
+      targets: this.chicken,
+      x: finalX,
+      duration: 200,
+      ease: "Sine.easeInOut", // плавное ускорение/замедление
+      yoyo: true, // возвращается обратно
+      repeat: 0, // бесконечно (или поставь число повторений)
+      onComplete: () => {
         this.isJumping = false;
       },
-      });
-      this.isJumping = true;
-
+    });
+    this.isJumping = true;
   }
 
   onJump() {
     if (this.isJumping || this.activeRoad > 8) return;
-    
+
     if (
       this.cars[this.activeRoad].y > 0 &&
       this.cars[this.activeRoad].y < ROAD_CELL_H * ROAD_ROWS
-    )
-    {
+    ) {
       this.moveFB();
       return;
     }
-    
 
     this.isJumping = true;
 
@@ -777,16 +758,15 @@ export default class MainGame extends Phaser.Scene {
       this.roadGroup.add(this.mcovers[this.activeRoad - 1]);
       this.roadGroup.remove(this.chicken);
       this.roadGroup.add(this.chicken);
-      
-      this.coversSprite[this.activeRoad - 1].play("coin");
+
       this.mcovers[this.activeRoad - 1].setScale(0.8);
 
-      this.mcovers[this.activeRoad - 1].visible = true;
+      //this.mcovers[this.activeRoad - 1].visible = true;
     }
 
     this.fences[this.activeRoad].visible = true;
-    
-    const finalX = (this.chicken.x) + ROAD_CELL_W;
+
+    const finalX = this.chicken.x + ROAD_CELL_W;
     const startY = this.chicken.y;
     const jumpHeight = 50;
 
@@ -800,6 +780,13 @@ export default class MainGame extends Phaser.Scene {
         easy: "Quart.easeOut",
       });
 
+      this.tweens.add({
+        targets: this.cracks[this.activeRoad],
+        scale: 0.6,
+        duration: FENCE_MOVE_TIME,
+        easy: "Quart.easeOut",
+      });
+
       this.carsTween[this.activeRoad].stop();
 
       if (this.cars[this.activeRoad].y < FENCE_DELTA_Y) {
@@ -808,26 +795,27 @@ export default class MainGame extends Phaser.Scene {
           y: FENCE_DELTA_Y,
           duration: FENCE_MOVE_TIME,
           easy: "Quart.easeOut",
+          repeat: 0,
           delay:
             this.cars[this.activeRoad].y == CAR_START_Y
               ? Math.random() * 500 + 100
               : 100,
         });
+      } else {
+        console.log("AR", this.cars[this.activeRoad].y);
+
+        this.carsTween[this.activeRoad].stop();
+        this.cars[this.activeRoad].y = -200;
+
+        this.carsTween[this.activeRoad] = this.tweens.add({
+          targets: this.cars[this.activeRoad],
+          y: ROAD_CELL_H * ROAD_ROWS + 200,
+          duration: FENCE_MOVE_TIME + 200,
+          onComplete: () => {
+            // this.onCarTweenComplete(this.activeRoad);
+          },
+        });
       }
-    } else {
-      console.log("AR", this.cars[this.activeRoad].y);
-
-      this.carsTween[this.activeRoad].stop();
-      this.cars[this.activeRoad].y = -200;
-
-      this.carsTween[this.activeRoad] = this.tweens.add({
-        targets: this.cars[this.activeRoad],
-        y: ROAD_CELL_H * ROAD_ROWS + 200,
-        duration: FENCE_MOVE_TIME + 200,
-        onComplete: () => {
-          this.onCarTweenComplete(this.activeRoad);
-        },
-      });
     }
 
     this.tweens.add({
@@ -1594,6 +1582,8 @@ export default class MainGame extends Phaser.Scene {
       scale: { start: 0.2, end: 0.5 },
       lifespan: 900,
     });
+
+    this.uiGroup.add(this.coinEmitter);
 
     this.coinEmitter.flow(50, 5);
     this.time.delayedCall(500, () => {

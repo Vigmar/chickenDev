@@ -18,12 +18,12 @@ export const SIDEWALK_CELL_W = 152;
 export const SIDEWALK_CELL_H = 121;
 
 export const CHICKEN_START_X = 0;
-export const CHICKEN_START_Y = 220;
+export const CHICKEN_START_Y = 250;
 
-export const COVER_DELTA_Y = 305;
+export const COVER_DELTA_Y = 325;
 export const COVER_DELTA_X = 25;
 
-export const FENCE_DELTA_Y = 250;
+export const FENCE_DELTA_Y = 270;
 export const FENCE_DELTA_X = 155;
 export const FENCE_MOVE_TIME = 500;
 
