@@ -26,6 +26,7 @@ import {
 import { getScaleValue } from "./getScaleValue";
 
 const coversSprites = ["1", "2", "3", "4", "5", "6", "7"];
+const coversText = [50000, 100000, 250000, 375000, 1375000, 12500000, 25000000];
 
 export default class MainGame extends Phaser.Scene {
   roadGroup: Phaser.GameObjects.Container;
@@ -44,8 +45,7 @@ export default class MainGame extends Phaser.Scene {
   fences: Phaser.GameObjects.Sprite[];
   particlesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
   goBtn: Phaser.GameObjects.Sprite;
-  cashoutBtn: Phaser.GameObjects.Sprite;
-  backBtn: Phaser.GameObjects.Sprite;
+
   tutorialText: Phaser.GameObjects.Sprite;
   tutorialHand: Phaser.GameObjects.Sprite;
   tutorialWheel: Phaser.GameObjects.Sprite;
@@ -75,7 +75,7 @@ export default class MainGame extends Phaser.Scene {
   roadSound: Phaser.Sound.BaseSound;
 
   chicken: Phaser.GameObjects.Sprite;
-  ghoust: Phaser.GameObjects.Sprite;
+  
 
   moneyAddContainer: Phaser.GameObjects.Container;
   moneyAddBG: Phaser.GameObjects.Sprite;
@@ -99,16 +99,14 @@ export default class MainGame extends Phaser.Scene {
   finalBtn: Phaser.GameObjects.Sprite;
   finalFlag: Phaser.GameObjects.Sprite;
   moneys: Phaser.GameObjects.Sprite[];
-  backEffect: Phaser.GameObjects.Sprite;
 
   centerX: number;
   scaleValue: number;
   activeRoad: number;
   balance: number = 0;
   isJumping: boolean = false;
-  isTutorial: boolean = false;
-  isWaitStart: boolean = true;
-  isSoundEnable: boolean = true;
+
+  isSoundEnable: boolean = false;
   isResult: boolean = false;
   isRotating: boolean = false;
   wheelRound: number = 0;
@@ -183,7 +181,7 @@ export default class MainGame extends Phaser.Scene {
     this.roadCols = [];
     this.mcovers = [];
     this.coversSprite = [];
-    this.coversText = [];
+    this.coversText = coversText;
     this.fences = [];
     this.cars = [];
     this.carsTween = [];
@@ -214,7 +212,7 @@ export default class MainGame extends Phaser.Scene {
       for (let j = 0; j < ROAD_ROWS; j++) {
         this.roadCols[i].add(
           this.add
-            .sprite(0, ROAD_CELL_H * j, "main", "road_texture.jpg")
+            .sprite(0, ROAD_CELL_H * j, "main", "road_texture.png")
             .setOrigin(0, 0)
         );
       }
@@ -224,6 +222,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.roadGroup.add(this.decorGroup);
 
+    /*
     for (let i = 0; i < 2; i++)
       for (let j = 0; j < SIDEWALK_ROWS; j++) {
         this.decorGroup.add(
@@ -238,7 +237,9 @@ export default class MainGame extends Phaser.Scene {
             .setOrigin(0, 0)
         );
       }
+      */
 
+    /*
     for (let j = 0; j < SIDEWALK_ROWS; j++) {
       this.decorGroup.add(
         this.add
@@ -253,29 +254,28 @@ export default class MainGame extends Phaser.Scene {
           .setOrigin(0, 0)
       );
     }
+      */
 
     this.decorGroup.add(
-      this.add.sprite(0, 0, "main", "city_2.png").setOrigin(0, 0)
+      this.add.sprite(0, 0, "main", "city.png").setOrigin(0, 0).setScale(1.5)
+    );
+
+    this.decorGroup.add(
+      this.add
+        .sprite(ROAD_START_X + ROAD_CELL_W * ROAD_COLS, 0, "main", "city.png")
+        .setOrigin(0, 0)
+        .setScale(1.5)
     );
     this.decorGroup.add(
       this.add
         .sprite(
-          ROAD_START_X + ROAD_CELL_W * ROAD_COLS - 48,
+          ROAD_START_X + ROAD_CELL_W * ROAD_COLS - 10,
           0,
           "main",
           "city.png"
         )
         .setOrigin(0, 0)
-    );
-    this.decorGroup.add(
-      this.add
-        .sprite(
-          ROAD_START_X + ROAD_CELL_W * ROAD_COLS - 48 + 272,
-          0,
-          "main",
-          "city.png"
-        )
-        .setOrigin(0, 0)
+        .setScale(1.5)
         .setFlipX(true)
     );
 
@@ -284,16 +284,7 @@ export default class MainGame extends Phaser.Scene {
       .setOrigin(0, 0)
       .setScale(0.75);
 
-    this.ghoust = this.add
-      .sprite(CHICKEN_START_X, CHICKEN_START_Y, "chicken")
-      .setOrigin(0, 0)
-      .setScale(0.75)
-      .setAlpha(0.75);
-
-    this.ghoust.visible = false;
-
-    this.roadGroup.add(this.ghoust);
-
+    
     for (let i = 0; i < ROAD_COLS; i++) {
       this.cars[i] = this.add
         .sprite(
@@ -331,45 +322,8 @@ export default class MainGame extends Phaser.Scene {
         },
       });
 
-    this.carsTween[0].stop();
-    this.carsTween[1].stop();
-    this.carsTween[2].stop();
-
-    // Создание анимации прыжка
-    this.anims.create({
-      key: "jump",
-      frames: [
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1000.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1001.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1002.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1003.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1004.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1005.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1006.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1007.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1008.png" },
-      ],
-      frameRate: 12, // скорость анимации
-      repeat: 0, // проиграть один раз (0 = один раз, -1 = бесконечно)
-    });
-
-    this.anims.create({
-      key: "reversjump",
-      frames: [
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1008.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1007.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1006.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1005.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1004.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1003.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1002.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1001.png" },
-        { key: "chicken", frame: "chicken_Jump/chicken_frames1000.png" },
-      ],
-      frameRate: 12, // скорость анимации
-      repeat: 0, // проиграть один раз (0 = один раз, -1 = бесконечно)
-    });
-
+    
+    
     // Создание анимации ожидания
     this.anims.create({
       key: "idle",
@@ -395,48 +349,24 @@ export default class MainGame extends Phaser.Scene {
       repeat: -1, // повторять бесконечно
     });
 
-    this.anims.create({
-      key: "gjump",
+        this.anims.create({
+      key: "jump",
       frames: [
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1000.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1001.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1002.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1003.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1004.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1005.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1006.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1007.png" },
-        { key: "chicken", frame: "GHOST_chicken_Jump/CHICKEN_FRAMES1008.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1000.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1001.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1002.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1003.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1004.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1005.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1006.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1007.png" },
+        { key: "chicken", frame: "chicken_Jump/chicken_frames1008.png" },
       ],
       frameRate: 12, // скорость анимации
       repeat: 0, // проиграть один раз (0 = один раз, -1 = бесконечно)
     });
 
-    // Создание анимации ожидания
-    this.anims.create({
-      key: "gidle",
-      frames: [
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2000.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2001.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2002.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2003.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2004.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2005.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2006.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2007.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2008.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2009.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2010.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2011.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2012.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2013.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2014.png" },
-        { key: "chicken", frame: "GHOST_idle_chicen/CHICKEN_FRAMES2015.png" },
-      ],
-      frameRate: 8, // скорость анимации (медленнее для idle)
-      repeat: -1, // повторять бесконечно
-    });
-
+    
     this.anims.create({
       key: "coin",
       frames: [
@@ -445,21 +375,6 @@ export default class MainGame extends Phaser.Scene {
       ],
       frameRate: 6, // скорость анимации
       repeat: 0, // проиграть один раз (0 = один раз, -1 = бесконечно)
-    });
-
-    this.anims.create({
-      key: "coinwin",
-      frames: [
-        { key: "main", frame: "coin_frames/coin_frames000.png" },
-        { key: "main", frame: "coin_frames/coin_frames001.png" },
-        { key: "main", frame: "coin_frames/coin_frames002.png" },
-        { key: "main", frame: "coin_frames/coin_frames003.png" },
-        { key: "main", frame: "coin_frames/coin_frames004.png" },
-        { key: "main", frame: "coin_frames/coin_frames005.png" },
-        { key: "main", frame: "coin_frames/coin_frames006.png" },
-      ],
-      frameRate: 30, // скорость анимации
-      repeat: -1, // проиграть один раз (0 = один раз, -1 = бесконечно)
     });
 
     this.anims.create({
@@ -526,49 +441,39 @@ export default class MainGame extends Phaser.Scene {
         "ui_panel.png"
       )
       .setOrigin(0.5, 0)
-      .setScale(0.5);
+      .setScale(1.2);
 
     this.goBtn = this.add
       .sprite(
-        this.centerX + 70,
-        240 + ROAD_CELL_H * ROAD_ROWS,
+        this.centerX + 170,
+        150 + ROAD_CELL_H * ROAD_ROWS,
         "main",
         "go_button.png"
       )
-      .setOrigin(0.5, 0)
-      .setScale(0.5);
+      .setOrigin(0, 0.5);
 
     this.goBtn.setInteractive();
 
     // Обработчик клика
     this.goBtn.on("pointerdown", (pointer) => {
+      console.log("r", this.gameRound, this.activeRoad);
 
-      console.log('r',this.gameRound,this.activeRoad);
-
-      if (!this.isTutorial && !this.isWaitStart && !(this.activeRoad==3 && (this.gameRound==0 || this.gameRound==2)) ) {
+      if (this.activeRoad < 7) {
         this.tutorialHand.visible = false;
         this.onJump();
+      } else {
+        this.startMoneyAddScreen();
       }
     });
 
-    this.cashoutBtn = this.add
-      .sprite(
-        this.centerX - 70,
-        240 + ROAD_CELL_H * ROAD_ROWS,
-        "ui",
-        "cashout2.png"
-      )
-      .setOrigin(0.5, 0)
-      .setScale(0.5);
-
     this.headerSprite = this.add
-      .sprite(this.centerX, 20, "main", "header.png")
-      .setOrigin(0.5, 0)
-      .setScale(0.66);
+      .sprite(this.centerX - 30, 20, "main", "header.png")
+      .setOrigin(1, 0)
+      .setScale(1.2);
 
     this.headBalance = this.createRouletteCounter(
-      this.centerX + 30,
-      50,
+      this.centerX - 170,
+      43,
       0.3,
       0,
       0,
@@ -645,7 +550,7 @@ export default class MainGame extends Phaser.Scene {
     this.uiGroup.add(this.usernameSprite);
     this.uiGroup.add(this.uiPanel);
     this.uiGroup.add(this.goBtn);
-    this.uiGroup.add(this.cashoutBtn);
+
     this.uiGroup.add(this.headerSprite);
     this.uiGroup.add(this.headBalance);
     //this.uiGroup.add(this.soundIcon);
@@ -656,6 +561,7 @@ export default class MainGame extends Phaser.Scene {
       this.roadGroup.y = -100;
     }
 
+    /*
     this.cover = this.add
       .rectangle(
         this.cameras.main.width / 2, // x (центр)
@@ -670,25 +576,14 @@ export default class MainGame extends Phaser.Scene {
       .setScrollFactor(0); // чтобы не двигался с камерой (опционально)
 
     this.uiGroup.add(this.cover);
+    */
 
     const tutorialScale =
       this.scale.width > this.scale.height
         ? 1
         : this.scale.width / this.scale.height;
 
-    this.tutorialWheel = this.add
-      .sprite(this.centerX, 500, "wheel", "CIRCLE.png")
-      .setOrigin(0.5, 0.5)
-      .setScale(tutorialScale);
-    this.uiGroup.add(this.tutorialWheel);
-
-    this.tutorialText = this.add
-      .sprite(this.centerX, 200, "wheel", "spin.png")
-      .setOrigin(0.5, 0.5)
-      .setScale(2 * tutorialScale)
-      .setInteractive();
-    this.uiGroup.add(this.tutorialText);
-
+    /*
     this.tutorialHand = this.add
       .sprite(this.centerX, 250, "ui", "tutor_hand.png")
       .setAngle(-45)
@@ -705,47 +600,21 @@ export default class MainGame extends Phaser.Scene {
       repeat: -1, // бесконечно (или поставь число повторений)
       // repeat: 3,                     // например, 3 раза туда-обратно
     });
+    */
 
-    // Добавляем обработчик тапа
-    this.tutorialText.on("pointerdown", (pointer) => {
-      if (!this.isTutorial && this.isWaitStart) {
-        this.isTutorial = true;
-        this.tutorialHand.visible = false;
-        this.handTween.stop();
-      }
-
-      if (!this.isRotating) {
-        //this.tutorialText.visible = false;
-
-        this.isRotating = true;
-
-        this.wheelTween = this.tweens.add({
-          targets: this.tutorialWheel,
-          angle: 430,
-          duration: 700, // 0.5 секунды до точки
-          ease: "Sine.easeInOut", // плавное ускорение/замедление
-        });
-
-        this.time.delayedCall(1500, () => {
-          this.tutorialWheel.destroy();
-          this.onMainGameplayStart();
-        });
-
-        //this.ghoust.visible = true;
-        //this.onJump(true);
-        //this.cover.setAlpha(0.5);
-        //this.startResultScreen();
-      }
-    });
+    this.onMainGameplayStart();
 
     this.roadSound = this.sound.add("road");
-    this.roadSound.play({
-      loop: true,
-    });
+
+    if (this.isSoundEnable)
+      this.roadSound.play({
+        loop: true,
+      });
 
     //this.startMoneyAddScreen();
     //this.startFinalScreen(true);
     //this.startPush();
+    this.startPromoScreen();
     this.scale.on("resize", this.resizeGame, this);
   }
 
@@ -754,26 +623,13 @@ export default class MainGame extends Phaser.Scene {
     this.goBtn.setInteractive(false);
     this.tutorialHand.destroy();
 
-    this.cashoutBtn.setInteractive();
-
-    this.cashoutBtn.on("pointerdown", (pointer) => {
-
-      if (!this.isJumping && !this.isTutorial && this.activeRoad == 3 && this.gameRound % 2==0)
-        this.startResultScreen();
-    });
-
     const tutorialScale =
       this.scale.width > this.scale.height
         ? 1
         : this.scale.width / this.scale.height;
 
     this.tutorialHand = this.add
-      .sprite(
-        this.cashoutBtn.x + 100,
-        this.cashoutBtn.y + 100,
-        "ui",
-        "tutor_hand.png"
-      )
+      .sprite(this.goBtn.x + 100, this.goBtn.y + 100, "ui", "tutor_hand.png")
       .setAngle(-45)
       .setScale(tutorialScale);
     this.uiGroup.add(this.tutorialHand);
@@ -793,260 +649,14 @@ export default class MainGame extends Phaser.Scene {
   }
 
   onMainGameplayStart() {
-    this.tweens.add({
-      targets: this.cameras.main,
-      scrollX: 0,
-      duration: 200,
-    });
+    this.tutorialHand = this.add
+      .sprite(this.centerX, 250, "ui", "tutor_hand.png")
+      .setAngle(-45);
 
-    for (let i = 0; i < 3; i++) {
-      this.roadGroup.remove(this.cars[i]);
-      this.roadGroup.add(this.cars[i]);
-      this.roadGroup.remove(this.fences[i]);
-      this.roadGroup.add(this.fences[i]);
-    }
-
-    this.roadGroup.remove(this.chicken);
-    this.roadGroup.add(this.chicken);
-
-    this.tutorialHand.x = this.goBtn.x + 100;
-    this.tutorialHand.y = this.goBtn.y + 100;
-    this.tutorialHand.visible = true;
-
-    this.handTween = this.tweens.add({
-      targets: this.tutorialHand,
-      x: this.tutorialHand.x - 30,
-      y: this.tutorialHand.y - 30,
-      duration: 700, // 0.5 секунды до точки
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: -1, // бесконечно (или поставь число повторений)
-      // repeat: 3,                     // например, 3 раза туда-обратно
-    });
-
-    this.cover.visible = false;
-    this.ghoust.visible = false;
-    this.activeRoad = 0;
-    this.isWaitStart = false;
-    this.isTutorial = false;
-    this.tutorialText.visible = false;
-
-    for (let i = 0; i < 3; i++) {
-      this.fences[i].y = -100;
-      this.cars[i].y = -400;
-      this.carsTween[i] = this.tweens.add({
-        targets: this.cars[i],
-        y: ROAD_CELL_H * ROAD_ROWS + 200,
-        duration: CAR_MOVE_TIME,
-        delay: Math.random() * 500 + 500 * i,
-        onComplete: () => {
-          this.onCarTweenComplete(i);
-        },
-      });
-
-      this.mcovers[i].visible = true;
-      //this.coversText[i].visible = true;
-      this.mcovers[i].setScale(1);
-      this.coversSprite[i].setTexture(
-        "main",
-        "covers/" + coversSprites[i] + ".png"
-      );
-    }
-  }
-
-  onRoundTwoStart() {
-    this.endPanelContainer.destroy();
-    this.gameRound = 1;
-
-    this.tweens.add({
-      targets: this.cameras.main,
-      scrollX: 0,
-      duration: 200,
-    });
-
-    for (let i = 0; i < 3; i++) {
-      this.roadGroup.remove(this.cars[i]);
-      this.roadGroup.add(this.cars[i]);
-      this.roadGroup.remove(this.fences[i]);
-      this.roadGroup.add(this.fences[i]);
-    }
-
-    this.roadGroup.remove(this.chicken);
-    this.roadGroup.add(this.chicken);
-    this.chicken.x = CHICKEN_START_X;
-
-    this.tutorialHand.x = this.goBtn.x + 100;
-    this.tutorialHand.y = this.goBtn.y + 100;
-    this.tutorialHand.visible = true;
-
-    this.handTween = this.tweens.add({
-      targets: this.tutorialHand,
-      x: this.tutorialHand.x - 30,
-      y: this.tutorialHand.y - 30,
-      duration: 700, // 0.5 секунды до точки
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: -1, // бесконечно (или поставь число повторений)
-      // repeat: 3,                     // например, 3 раза туда-обратно
-    });
-
-    this.cover.visible = false;
-    this.ghoust.visible = false;
-    this.activeRoad = 0;
-    this.isWaitStart = false;
-    this.isTutorial = false;
-    this.tutorialText.visible = false;
-
-    for (let i = 0; i < 3; i++) {
-      this.fences[i].y = -100;
-      this.cars[i].y = -400;
-      this.carsTween[i] = this.tweens.add({
-        targets: this.cars[i],
-        y: ROAD_CELL_H * ROAD_ROWS + 200,
-        duration: CAR_MOVE_TIME,
-        delay: Math.random() * 500 + 500 * i,
-        onComplete: () => {
-          this.onCarTweenComplete(i);
-        },
-      });
-
-      this.mcovers[i].visible = true;
-      //this.coversText[i].visible = true;
-      this.mcovers[i].setScale(1);
-      this.coversSprite[i].setTexture(
-        "main",
-        "covers/" + coversSprites[i] + ".png"
-      );
-    }
-  }
-
-  onTimeRevert() {
-    this.mcovers[3].visible = true;
-    this.mcovers[3].setScale(1);
-    this.gameRound = 2;
-
-    
-     this.cars[3].y = -400;
-      this.carsTween[3] = this.tweens.add({
-        targets: this.cars[3],
-        y: ROAD_CELL_H * ROAD_ROWS + 200,
-        duration: CAR_MOVE_TIME,
-        delay: Math.random() * 500,
-        onComplete: () => {
-          this.onCarTweenComplete(3);
-        },
-      });
-
-    this.coversSprite[3].setTexture(
-      "main",
-      "covers/" + coversSprites[3] + ".png"
-    );
-
-    this.chicken.play("idle");
-    this.chicken.x -= ROAD_CELL_W / 2;
-    this.isJumping = true;
-
-    this.backEffect = this.add
-      .sprite(this.centerX, 450, "wheel", "VFXrewind.png")
-      .setOrigin(0.5, 0.5)
-      .setScale(10);
-    this.uiGroup.add(this.backEffect);
-    this.backEffect.setAlpha(0.5);
-
-    this.tweens.add({
-      targets: this.backEffect,
-      alpha: 0,
-      duration: 100,
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: 10, // бесконечно (или поставь число повторений)
-    });
-
-    const finalX = this.chicken.x - ROAD_CELL_W;
-    const jumpHeight = 50;
-
-    this.tweens.add({
-      targets: this.chicken,
-      x: finalX,
-      delay: 500,
-      duration: FENCE_MOVE_TIME,
-    });
-
-    const startY = this.chicken.y;
-
-    this.tweens.add({
-      targets: this.chicken,
-      y: startY - jumpHeight, // поднимаемся
-      duration: FENCE_MOVE_TIME / 2,
-      ease: "Power1",
-      yoyo: true, // возвращаемся обратно
-      repeat: 0,
-      delay: 500,
-      onComplete: () => {
-        this.isJumping = false;
-        this.backEffect.destroy();
-      },
-    });
-
-    this.time.delayedCall(500, () => {
-      this.chicken.play("reversjump");
-    });
-
-    this.goBtn.setInteractive(false);
-    this.cashoutBtn.setInteractive();
-
-    this.cashoutBtn.on("pointerdown", (pointer) => {
-
-      if (!this.isJumping  && this.activeRoad == 3 && this.gameRound ==2)
-        console.log("RRRR");
-        this.startResultScreen();
-    });
-
-  }
-
-  onTimeBackWait() {
-    this.endPanelContainer.destroy();
-
-    this.goBtn.visible = false;
-    this.cashoutBtn.visible = false;
-
-    this.backBtn = this.add
-      .sprite(
-        this.centerX,
-        240 + ROAD_CELL_H * ROAD_ROWS,
-        "wheel",
-        "backbtn.png"
-      )
-      .setOrigin(0.5, 0)
-      .setScale(0.5);
-
-    this.uiGroup.add(this.backBtn);
-    this.uiGroup.remove(this.tutorialHand);
     this.uiGroup.add(this.tutorialHand);
 
-    /*
-    this.tweens.add({
-      targets: this.cameras.main,
-      scrollX: 0,
-      duration: 200,
-    });
-    */
-
-    /*
-    for (let i = 0; i < 3; i++) {
-      this.roadGroup.remove(this.cars[i]);
-      this.roadGroup.add(this.cars[i]);
-      this.roadGroup.remove(this.fences[i]);
-      this.roadGroup.add(this.fences[i]);
-    }
-
-    this.roadGroup.remove(this.chicken);
-    this.roadGroup.add(this.chicken);
-    this.chicken.x = CHICKEN_START_X;
-    */
-
-    this.tutorialHand.x = this.backBtn.x + 100;
-    this.tutorialHand.y = this.backBtn.y + 100;
+    this.tutorialHand.x = this.goBtn.x + 100;
+    this.tutorialHand.y = this.goBtn.y + 100;
     this.tutorialHand.visible = true;
 
     this.handTween = this.tweens.add({
@@ -1060,16 +670,11 @@ export default class MainGame extends Phaser.Scene {
       // repeat: 3,                     // например, 3 раза туда-обратно
     });
 
-    this.cover.visible = false;
-    this.ghoust.visible = false;
-    this.activeRoad = 3;
-    this.isWaitStart = false;
-    this.isTutorial = false;
-    this.tutorialText.visible = false;
+    //this.cover.visible = false;
 
-    
+    this.activeRoad = 0;
+
     for (let i = 0; i < 3; i++) {
-      /*
       this.fences[i].y = -100;
       this.cars[i].y = -400;
       this.carsTween[i] = this.tweens.add({
@@ -1081,7 +686,6 @@ export default class MainGame extends Phaser.Scene {
           this.onCarTweenComplete(i);
         },
       });
-      */
 
       this.mcovers[i].visible = true;
       //this.coversText[i].visible = true;
@@ -1091,15 +695,6 @@ export default class MainGame extends Phaser.Scene {
         "covers/" + coversSprites[i] + ".png"
       );
     }
-
-    this.backBtn.setInteractive();
-
-    this.backBtn.on("pointerdown", (pointer) => {
-      this.backBtn.visible = false;
-      this.goBtn.visible = true;
-      this.cashoutBtn.visible = true;
-      this.onTimeRevert();
-    });
   }
 
   resizeGame() {
@@ -1115,8 +710,8 @@ export default class MainGame extends Phaser.Scene {
     }
 
     this.uiPanel.x = this.centerX;
-    this.goBtn.x = this.centerX + 70;
-    this.cashoutBtn.x = this.centerX - 70;
+    this.goBtn.x = this.centerX + 150;
+
     this.headBalance.x = this.centerX + 30;
     this.headerSprite.x = this.centerX;
 
@@ -1124,9 +719,6 @@ export default class MainGame extends Phaser.Scene {
       this.scale.width > this.scale.height
         ? 1
         : this.scale.width / this.scale.height;
-
-    this.tutorialText.x = this.centerX;
-    this.tutorialText.setScale(2 * tutorialScale);
 
     //if (this.tutorialHand.visible)
     {
@@ -1145,16 +737,38 @@ export default class MainGame extends Phaser.Scene {
     }
   }
 
-  onJump(isGhoust: boolean = false) {
-    if (this.isJumping || this.activeRoad > 3) return;
+  moveFB() {
 
-    /*
+    const finalX = this.chicken.x + 50;
+    this.chicken.play("jump");
+    
+      this.tweens.add({
+        targets: this.chicken,
+        x: finalX,
+        duration: 300,
+        ease: "Sine.easeInOut", // плавное ускорение/замедление
+        yoyo: true, // возвращается обратно
+        repeat: 0, // бесконечно (или поставь число повторений)
+         onComplete: () => {
+        this.isJumping = false;
+      },
+      });
+      this.isJumping = true;
+
+  }
+
+  onJump() {
+    if (this.isJumping || this.activeRoad > 8) return;
+    
     if (
       this.cars[this.activeRoad].y > 0 &&
-      this.cars[this.activeRoad].y < ROAD_CELL_H * ROAD_ROWS + 200
+      this.cars[this.activeRoad].y < ROAD_CELL_H * ROAD_ROWS
     )
+    {
+      this.moveFB();
       return;
-      */
+    }
+    
 
     this.isJumping = true;
 
@@ -1163,9 +777,7 @@ export default class MainGame extends Phaser.Scene {
       this.roadGroup.add(this.mcovers[this.activeRoad - 1]);
       this.roadGroup.remove(this.chicken);
       this.roadGroup.add(this.chicken);
-      this.roadGroup.remove(this.ghoust);
-      this.roadGroup.add(this.ghoust);
-
+      
       this.coversSprite[this.activeRoad - 1].play("coin");
       this.mcovers[this.activeRoad - 1].setScale(0.8);
 
@@ -1173,16 +785,14 @@ export default class MainGame extends Phaser.Scene {
     }
 
     this.fences[this.activeRoad].visible = true;
-    if (isGhoust) this.ghoust.play("gjump");
-    else this.chicken.play("jump");
-
-    const finalX = (isGhoust ? this.ghoust.x : this.chicken.x) + ROAD_CELL_W;
+    
+    const finalX = (this.chicken.x) + ROAD_CELL_W;
     const startY = this.chicken.y;
     const jumpHeight = 50;
 
     if (this.isSoundEnable) this.sound.play("jump");
 
-    if (this.activeRoad < 3) {
+    if (this.activeRoad < 8) {
       this.tweens.add({
         targets: this.fences[this.activeRoad],
         y: FENCE_DELTA_Y,
@@ -1221,7 +831,7 @@ export default class MainGame extends Phaser.Scene {
     }
 
     this.tweens.add({
-      targets: isGhoust ? this.ghoust : this.chicken,
+      targets: this.chicken,
       x: finalX,
       duration: FENCE_MOVE_TIME,
       onComplete: () => {
@@ -1231,143 +841,33 @@ export default class MainGame extends Phaser.Scene {
 
         this.activeRoad += 1;
 
-        if (isGhoust) {
-          this.ghoust.play("gidle");
-          this.tweens.add({
-            targets: this.ghoust,
-            alpha: 0.8,
-            duration: FENCE_MOVE_TIME,
-            ease: "Power1",
-            repeat: 0,
-            onComplete: () => {
-              if (this.activeRoad < 3) this.onJump(true);
-              else {
-                this.onMainGameplayStart();
-              }
-            },
-          });
-        } else {
-          if (this.activeRoad == 1) {
-            this.tutorialHand.visible = true;
-            this.headBalance.destroy();
+        this.tutorialHand.visible = true;
+        this.headBalance.destroy();
 
-            this.cashBalance = this.createRouletteCounter(
-              this.cashoutBtn.x - 40,
-              this.cashoutBtn.y + 60,
-              0.3,
-              0,
-              150,
-              1000,
-              false,
-              "black"
-            );
-            this.headBalance = this.createRouletteCounter(
-              this.centerX + 20,
-              50,
-              0.3,
-              0,
-              150,
-              1000,
-              false
-            );
-            this.uiGroup.add(this.cashBalance);
-            this.uiGroup.add(this.headBalance);
-          } else if (this.activeRoad == 2) {
-            this.tutorialHand.visible = true;
-            this.cashBalance.destroy();
-            this.headBalance.destroy();
-            this.cashBalance = this.createRouletteCounter(
-              this.cashoutBtn.x - 40,
-              this.cashoutBtn.y + 60,
-              0.3,
-              150,
-              321,
-              1000,
-              false,
-              "black"
-            );
-            this.headBalance = this.createRouletteCounter(
-              this.centerX + 20,
-              50,
-              0.3,
-              150,
-              321,
-              1000,
-              false
-            );
-            this.uiGroup.add(this.cashBalance);
-            this.uiGroup.add(this.headBalance);
-          }
+        this.cashBalance = this.createRouletteCounter(
+          this.goBtn.x - 110,
+          this.goBtn.y + 5,
+          0.3,
+          this.activeRoad == 1 ? 0 : this.coversText[this.activeRoad - 2],
+          this.coversText[this.activeRoad - 1],
+          1000
+        );
+        this.headBalance = this.createRouletteCounter(
+          this.centerX - 170,
+          43,
+          0.3,
+          this.activeRoad == 1 ? 0 : this.coversText[this.activeRoad - 2],
+          this.coversText[this.activeRoad - 1],
+          1000
+        );
+        this.uiGroup.add(this.cashBalance);
+        this.uiGroup.add(this.headBalance);
 
-          if (this.activeRoad == 3 ) {
-            this.cashoutBtn.destroy();
-            this.cashoutBtn = this.add
-              .sprite(
-                this.centerX - 70,
-                240 + ROAD_CELL_H * ROAD_ROWS,
-                "main",
-                "cashout_button.png"
-              )
-              .setOrigin(0.5, 0)
-              .setScale(0.5);
-
-            this.uiGroup.add(this.cashoutBtn);
-
-            this.cashBalance.destroy();
-            this.headBalance.destroy();
-            this.cashBalance = this.createRouletteCounter(
-              this.cashoutBtn.x - 40,
-              this.cashoutBtn.y + 60,
-              0.3,
-              321,
-              523,
-              1000,
-              false,
-              "black"
-            );
-            this.headBalance = this.createRouletteCounter(
-              this.centerX + 20,
-              50,
-              0.3,
-              321,
-              523,
-              1000,
-              false
-            );
-            this.uiGroup.add(this.cashBalance);
-            this.uiGroup.add(this.headBalance);
-            if (this.gameRound % 2 ==0)
-            this.onThirdStep();
-          }
-
-          if (this.activeRoad < 4) this.chicken.play("idle");
-          else {
-            this.chicken.stop();
-            this.chicken.x = this.chicken.x + ROAD_CELL_W / 2;
-            this.chicken.y += ROAD_CELL_H * 2;
-            this.chicken.setTexture("main", "dead_chicken.png");
-            if (this.isSoundEnable) this.sound.play("beep");
-
-            this.time.delayedCall(
-              1000,
-              () => {
-                this.startResultScreen(false);
-              },
-              [],
-              this
-            );
-          }
+        if (this.activeRoad < 7) this.chicken.play("idle");
+        else {
+          this.goBtn.setTexture("main", "cashout.png");
         }
       },
-    });
-
-    this.tweens.add({
-      targets: isGhoust ? this.ghoust : this.chicken,
-      y: startY - jumpHeight, // поднимаемся
-      duration: FENCE_MOVE_TIME / 2,
-      ease: "Power1",
-      yoyo: true, // возвращаемся обратно
-      repeat: 0,
     });
 
     const cameraX = this.cameras.main.scrollX + ROAD_CELL_W;
@@ -1380,10 +880,8 @@ export default class MainGame extends Phaser.Scene {
 
     if (
       this.activeRoad > 0 &&
-      ROAD_START_X +
-        ROAD_CELL_W * ROAD_COLS -
-        (isGhoust ? this.ghoust.x : this.chicken.x) >
-        this.scale.width
+      ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chicken.x >
+        this.scale.width + 100
     )
       this.tweens.add({
         targets: this.cameras.main,
@@ -1411,7 +909,7 @@ export default class MainGame extends Phaser.Scene {
 
   startCoinEffect(x, y) {
     this.coinEmitter = this.add.particles(x, y, "main", {
-      anim: "coinwin",
+      anim: "coin",
       quantity: 1,
       speed: { min: 500, max: 600 },
       angle: { min: 0, max: 360 },
@@ -1431,75 +929,15 @@ export default class MainGame extends Phaser.Scene {
   startWinEffect(x, y, round = 0) {
     if (this.isSoundEnable) this.sound.play("win");
 
-    if (this.gameRound ==2)
-        this.startPush();
-
-    /*
-    this.endEffectAnim = this.add
-      .sprite(
-        x,
-        y,
-        "main",
-        "you_win_effect_frames/you_win_effect_frames000.png"
-      )
-      .setOrigin(0.5, 0.5)
-      .setScale(0);
-
-    this.uiGroup.add(this.endEffectAnim);
-    this.endEffectAnim.play("wineffect");
-    this.endEffectTween = this.tweens.add({
-      targets: this.endEffectAnim,
-      duration: 300,
-      scale: 2.5,
-      onComplete: () => {
-        this.endEffectAnim.destroy();
-        this.startCoinEffect(x, y);
-      },
-    });
+    if (this.gameRound == 2) this.startPush();
 
     this.time.delayedCall(150, () => {
       //this.startCoinEffect(x,y);
-      this.startEndPanel(true, this.centerX, 425);
-    });
-    */
-
-    this.moneys = [];
-
-    for (let i = 0; i < 9; i++) {
-      this.moneys[i] = this.add
-        .sprite(this.centerX, 450, "wheel", "manat.jpg")
-        .setOrigin(0.5, 0.5)
-        .setScale(0);
-      this.uiGroup.add(this.moneys[i]);
-      this.tweens.add({
-        targets: this.moneys[i],
-        scale: 1,
-        duration: 500, // 0.5 секунды до точки
-        ease: "Sine.easeIn",
-        delay: 100 * i,
-        onComplete: () => {
-          this.tweens.add({
-            targets: this.moneys[i],
-            y: 100,
-            duration: 500, // 0.5 секунды до точки
-            ease: "Sine.easeIn", // плавное ускорение/замедление
-            onComplete: () => {
-              this.moneys[i].destroy();
-            },
-          });
-        },
-      });
-    }
-
-    this.time.delayedCall(150, () => {
-      //this.startCoinEffect(x,y);
-      this.startEndPanel(true, this.centerX, 425, round);
+      this.startEndPanel(this.centerX, 425);
     });
   }
 
   startEndPanelTweens() {
-
-
     this.endPanelTweenBounce = this.tweens.add({
       targets: this.endPanelContainer,
       angle: -3,
@@ -1593,58 +1031,70 @@ export default class MainGame extends Phaser.Scene {
     });
   }
 
-  startEndPanel(isWin, x, y, round = 0) {
+  startEndPanel(x, y) {
     this.endPanelContainer = this.add.container();
     this.endPanelContainer.x = x;
     this.endPanelContainer.y = y;
-    if (isWin)
-      this.endPanelContainer.setAngle(3);
 
-    if (isWin)
-      this.endPanel = this.add
-        .sprite(0, 0, "ui", "win.png")
-        .setOrigin(0.5, 0.5)
-        .setScale(0);
-    else
-      this.endPanel = this.add
-        .sprite(0, 0, "wheel", "bonus live.png")
-        .setOrigin(0.5, 0.5)
-        .setScale(0);
+    this.endPanel = this.add
+      .sprite(0, 0, "main", "welcome.png")
+      .setOrigin(0.5, 0.5)
+      .setScale(0);
 
     this.uiGroup.add(this.endPanelContainer);
     this.endPanelContainer.add(this.endPanel);
 
-    
     this.endPanelTween = this.tweens.add({
       targets: this.endPanel,
       duration: 300,
-      scale: 0.5,
-      onComplete: () => {
-        if (isWin)
-          this.startEndPanelTweens();
-      },
+      scale: 1,
     });
 
-    if (!isWin)
-    {
-      this.endPanel.setInteractive();
-      this.endPanel.on("pointerdown", (pointer) => {
-      
-      this.onTimeBackWait()
-    });
-      
-    }
-
-
-    if (isWin)
-    this.time.delayedCall(2000, () => {
+    this.time.delayedCall(1000, () => {
       //this.startCoinEffect(x,y);
-      if (this.gameRound == 0 && isWin) this.onRoundTwoStart();
-      //else if (round == 0 && !isWin) this.onTimeBackWait();
-      else {
-        if (isWin) this.startMoneyAddScreen();
-        //else this.startFinalScreen(false);
-      }
+
+      this.endPanel.setInteractive();
+
+      this.endPanel.on("pointerdown", (pointer) => {
+        this.cover.visible = false;
+        this.endPanel.visible = false;
+
+        this.handTween.stop();
+
+        this.tutorialHand.x = this.goBtn.x + 10;
+        this.tutorialHand.y = this.goBtn.y - 20;
+
+        this.handTween = this.tweens.add({
+          targets: this.tutorialHand,
+          x: this.tutorialHand.x - 30,
+          y: this.tutorialHand.y - 30,
+          duration: 700,
+          ease: "Sine.easeInOut",
+          yoyo: true,
+          repeat: -1,
+        });
+      });
+
+      this.tutorialHand = this.add
+        .sprite(
+          this.endPanelContainer.x + 30,
+          this.endPanelContainer.y + 50,
+          "ui",
+          "tutor_hand.png"
+        )
+        .setAngle(-45)
+        .setScale(0.5);
+
+      this.handTween = this.tweens.add({
+        targets: this.tutorialHand,
+        x: this.tutorialHand.x + 50,
+        y: this.tutorialHand.y + 50,
+        duration: 600,
+        ease: "Sine.easeInOut", // плавное ускорение/замедление
+        yoyo: true, // возвращается обратно
+        repeat: -1, // бесконечно (или поставь число повторений)
+        // repeat: 3,                     // например, 3 раза туда-обратно
+      });
     });
   }
 
@@ -1690,7 +1140,7 @@ export default class MainGame extends Phaser.Scene {
 
     this.time.delayedCall(250, () => {
       //this.startCoinEffect(x,y);
-      this.startEndPanel(false, this.centerX, 425);
+      this.startEndPanel(this.centerX, 425);
     });
   }
 
@@ -1707,10 +1157,9 @@ export default class MainGame extends Phaser.Scene {
       ((this.scale.height / 1280) * 900) / this.scale.height;
 
     this.finalFlag = this.add
-      .sprite(this.centerX, 140, "wheel", "flag.png")
+      .sprite(this.centerX, 140, "main", "flag.png")
       .setOrigin(0.5, 0)
-      .setScale(0.6);  
-
+      .setScale(0.6);
 
     this.finalArca = this.add
       .sprite(this.centerX, 900, "packshot_arca")
@@ -1744,10 +1193,9 @@ export default class MainGame extends Phaser.Scene {
       .setOrigin(0.5, 0)
       .setScale(0.6);
 
-
     if (isWin) {
       this.coinEmitter = this.add.particles(this.centerX, 400, "main", {
-        anim: "coinwin",
+        anim: "coin",
         quantity: 1,
         speed: { min: 500, max: 600 },
         angle: { min: 0, max: 360 },
@@ -1774,7 +1222,7 @@ export default class MainGame extends Phaser.Scene {
     this.finalContainer.add(this.finalCoin1);
     this.finalContainer.add(this.finalCoin2);
     this.finalContainer.add(this.finalHeader);
-    
+
     this.finalContainer.add(this.coinEmitter);
 
     this.tweens.add({
@@ -2086,11 +1534,11 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startResultScreen(isWin = true) {
-    this.cover.visible = false;
+    //this.cover.visible = false;
     this.isResult = true;
     this.tutorialHand.visible = false;
     this.handTween.stop();
-    this.cover.destroy();
+    //this.cover.destroy();
 
     this.cover = this.add
       .rectangle(
@@ -2106,8 +1554,56 @@ export default class MainGame extends Phaser.Scene {
 
     this.uiGroup.add(this.cover);
 
-    if (isWin) this.startWinEffect(this.centerX, 425);
-    else this.startLoseEffect(this.centerX, 425);
+    //if (isWin) this.startWinEffect(this.centerX, 425);
+    //else this.startLoseEffect(this.centerX, 425);
+
+    this.time.delayedCall(500, () => {
+      this.startMoneyAddScreen();
+    });
+  }
+
+  startPromoScreen() {
+    //this.cover.visible = false;
+
+    this.tutorialHand.visible = false;
+    this.handTween.stop();
+    //this.cover.destroy();
+
+    this.cover = this.add
+      .rectangle(
+        this.cameras.main.width / 2, // x (центр)
+        this.cameras.main.height / 2, // y (центр)
+        10 * this.cameras.main.width, // ширина
+        10 * this.cameras.main.height, // высота
+        0x000000, // цвет (любой, мы сделаем прозрачным)
+        0.5 // альфа = 0 → полностью прозрачный
+      )
+      .setOrigin(0.5)
+      .setScrollFactor(0); // чтобы не двигался с камерой (опционально)
+
+    this.uiGroup.add(this.cover);
+
+    this.startWinEffect(this.centerX, 425);
+
+    this.coinEmitter = this.add.particles(this.centerX, 425, "main", {
+      anim: "coin",
+      quantity: 1,
+      speed: { min: 500, max: 600 },
+      angle: { min: 0, max: 360 },
+      gravityY: 0,
+      scale: { start: 0.2, end: 0.5 },
+      lifespan: 900,
+    });
+
+    this.coinEmitter.flow(50, 5);
+    this.time.delayedCall(500, () => {
+      this.coinEmitter.stop();
+    });
+
+    if (this.isSoundEnable) this.sound.play("win");
+
+    //if (isWin) this.startWinEffect(this.centerX, 425);
+    //else this.startLoseEffect(this.centerX, 425);
   }
 
   createRouletteCounter(
@@ -2119,7 +1615,7 @@ export default class MainGame extends Phaser.Scene {
     duration,
     isSmall = true,
     dirprefix = "",
-    isNoCur = false
+    isNoCur = true
   ) {
     const atlasKey = "ui";
     const container = this.add.container(x, y);

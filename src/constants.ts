@@ -6,10 +6,10 @@ export const BLACK_COLOR = "#000000";
 export const COL_MONEY = [50,100,200,500,700,900,1200];
 
 export const ROAD_COLS = 7;
-export const ROAD_ROWS = 6;
+export const ROAD_ROWS = 8;
 export const ROAD_CELL_W = 127;
 export const ROAD_CELL_H = 80;
-export const ROAD_START_X = 182;
+export const ROAD_START_X = 150;
 
 export const SIDEWALK_ROWS = 6;
 export const SIDEWALK_START_X = 30;
@@ -21,14 +21,14 @@ export const CHICKEN_START_X = 0;
 export const CHICKEN_START_Y = 220;
 
 export const COVER_DELTA_Y = 305;
-export const COVER_DELTA_X = 5;
+export const COVER_DELTA_X = 25;
 
 export const FENCE_DELTA_Y = 250;
-export const FENCE_DELTA_X = 180;
+export const FENCE_DELTA_X = 155;
 export const FENCE_MOVE_TIME = 500;
 
 export const CAR_START_Y = -200;
-export const CAR_DELTA_X = 190;
+export const CAR_DELTA_X = 172;
 export const CAR_DELTA_Y = 220;
 export const CAR_FRAMES = ['icecream_wagon.png','police_car.png','purple_truck.png','fire_truck.png'];
 export const CAR_MOVE_TIME = 1000;
