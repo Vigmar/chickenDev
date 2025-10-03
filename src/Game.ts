@@ -508,12 +508,12 @@ export default class MainGame extends Phaser.Scene {
     });
 
     this.topBg = this.add.graphics();
-    this.topBg.fillStyle(0x021430, 1);
+    this.topBg.fillStyle(0x181a39, 1);
     this.topBg.fillRect(0, 0, 2000, 100); // x, y, ширина, высота
     this.uiGroup.add(this.topBg);
 
     this.bottomBg = this.add.graphics();
-    this.bottomBg.fillStyle(0x021430, 1);
+    this.bottomBg.fillStyle(0x181a39, 1);
     this.bottomBg.fillRect(0, 100 + ROAD_CELL_H * ROAD_ROWS, 2000, 1000); // x, y, ширина, высота
     this.uiGroup.add(this.bottomBg);
 
