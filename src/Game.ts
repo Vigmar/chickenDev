@@ -101,6 +101,7 @@ export default class MainGame extends Phaser.Scene {
   finalFlag: Phaser.GameObjects.Sprite;
   moneys: Phaser.GameObjects.Sprite[];
 
+  isPort: boolean;
   centerX: number;
   scaleValue: number;
   activeRoad: number;
@@ -148,6 +149,7 @@ export default class MainGame extends Phaser.Scene {
 
   create() {
     this.scaleValue = getScaleValue(this);
+    this.isPort = this.scale.width < this.scale.height;
     this.sound.volume = 0.4;
 
     //this.cameras.main.setViewport(0, 0, 800, 1200); // x, y, width, height
@@ -281,6 +283,18 @@ export default class MainGame extends Phaser.Scene {
         .setFlipX(true)
     );
 
+    this.decorGroup.add(
+      this.add
+        .sprite(
+          ROAD_START_X + ROAD_CELL_W * ROAD_COLS - 10 + 300,
+          0,
+          "main",
+          "city.png"
+        )
+        .setOrigin(0, 0)
+        .setScale(1.5)
+    );
+
     this.chicken = this.add
       .sprite(CHICKEN_START_X, CHICKEN_START_Y, "chicken")
       .setOrigin(0, 0)
@@ -307,16 +321,18 @@ export default class MainGame extends Phaser.Scene {
         .setScale(0.5);
       this.fences[i].visible = false;
 
-      
-
       this.cracks[i] = this.add
-        .sprite(FENCE_DELTA_X + ROAD_CELL_W * i+50, FENCE_DELTA_Y+45, "main", "crack.png")
+        .sprite(
+          FENCE_DELTA_X + ROAD_CELL_W * i + 50,
+          FENCE_DELTA_Y + 45,
+          "main",
+          "crack.png"
+        )
         .setOrigin(0.5, 0.5)
         .setScale(0);
 
-        this.roadGroup.add(this.cracks[i]);
-        this.roadGroup.add(this.fences[i]);
-
+      this.roadGroup.add(this.cracks[i]);
+      this.roadGroup.add(this.fences[i]);
     }
 
     this.roadGroup.add(this.chicken);
@@ -443,16 +459,16 @@ export default class MainGame extends Phaser.Scene {
     this.uiPanel = this.add
       .sprite(
         this.centerX,
-        110 + ROAD_CELL_H * ROAD_ROWS,
+        100 * !this.isPort + 10 + ROAD_CELL_H * ROAD_ROWS,
         "main",
-        "ui_panel.png"
+        this.isPort ? "ui_panel_2.png" : "ui_panel.png"
       )
       .setOrigin(0.5, 0)
-      .setScale(1.2);
+      .setScale(this.isPort ? 0.8 : 1.2);
 
     this.goBtn = this.add
       .sprite(
-        this.centerX + 170,
+        this.centerX + 30 + 140 * !this.isPort,
         150 + ROAD_CELL_H * ROAD_ROWS,
         "main",
         "go_button.png"
@@ -463,8 +479,6 @@ export default class MainGame extends Phaser.Scene {
 
     // Обработчик клика
     this.goBtn.on("pointerdown", (pointer) => {
-      console.log("r", this.gameRound, this.activeRoad);
-
       if (this.activeRoad < 7) {
         this.tutorialHand.visible = false;
         this.onJump();
@@ -516,60 +530,34 @@ export default class MainGame extends Phaser.Scene {
     this.topBg = this.add.graphics();
     this.topBg.fillStyle(0x181a39, 1);
     this.topBg.fillRect(0, 0, 2000, 100); // x, y, ширина, высота
+    if (this.isPort) this.topBg.visible = false;
     this.uiGroup.add(this.topBg);
 
     this.bottomBg = this.add.graphics();
     this.bottomBg.fillStyle(0x181a39, 1);
-    this.bottomBg.fillRect(0, 100 + ROAD_CELL_H * ROAD_ROWS, 2000, 1000); // x, y, ширина, высота
+    this.bottomBg.fillRect(
+      0,
+      100 * !this.isPort + ROAD_CELL_H * ROAD_ROWS,
+      2000,
+      1000
+    ); // x, y, ширина, высота
     this.uiGroup.add(this.bottomBg);
 
-    /*
-    this.onlineSprite = this.add
-      .sprite(0, 100, "main", "europe/top.png")
-      .setOrigin(0, 0);
-
-    this.onlineText = this.createRouletteCounter(
-      220,
-      130,
-      0.3,
-      11900,
-      11952,
-      500,
-      false,
-      "",
-      true
-    );
-
-    this.usernameSprite = this.add
-      .sprite(0, 150, "main", "europe/eur_bottom_1.png")
-      .setOrigin(0, 0);
-
-    this.time.addEvent({
-      delay: 3000,
-      callback: () => {
-        if (!this.isResult)
-          this.usernameSprite.setTexture(
-            "main",
-            "europe/eur_bottom_" + Math.floor(Math.random() * 6 + 1) + ".png"
-          );
-      },
-      callbackScope: this,
-      loop: true,
-    });
-
-    //this.usernameSprite = this.add.sprite()
-    this.uiGroup.add(this.onlineSprite);
-    this.uiGroup.add(this.onlineText);
-    this.uiGroup.add(this.usernameSprite);
-    */
     this.uiGroup.add(this.uiPanel);
     this.uiGroup.add(this.goBtn);
 
     this.uiGroup.add(this.headerSprite);
     this.uiGroup.add(this.headBalance);
     this.uiGroup.add(this.headerLogo);
+
+    if (this.isPort) {
+      this.headBalance.visible = false;
+      this.headerSprite.visible = false;
+      this.headerLogo.visible = false;
+    }
+
     //this.uiGroup.add(this.soundIcon);
-    this.roadGroup.y = 100;
+    this.roadGroup.y = this.isPort ? 0 : 100;
 
     if (this.scale.width > this.scale.height) {
       this.roadGroup.setScale(1.5);
@@ -598,25 +586,6 @@ export default class MainGame extends Phaser.Scene {
         ? 1
         : this.scale.width / this.scale.height;
 
-    /*
-    this.tutorialHand = this.add
-      .sprite(this.centerX, 250, "ui", "tutor_hand.png")
-      .setAngle(-45)
-      .setScale(tutorialScale);
-    this.uiGroup.add(this.tutorialHand);
-
-    this.handTween = this.tweens.add({
-      targets: this.tutorialHand,
-      x: this.tutorialHand.x - 20,
-      y: this.tutorialHand.y - 50,
-      duration: 700, // 0.5 секунды до точки
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: -1, // бесконечно (или поставь число повторений)
-      // repeat: 3,                     // например, 3 раза туда-обратно
-    });
-    */
-
     this.onMainGameplayStart();
 
     this.roadSound = this.sound.add("road");
@@ -640,8 +609,8 @@ export default class MainGame extends Phaser.Scene {
 
     this.uiGroup.add(this.tutorialHand);
 
-    this.tutorialHand.x = this.goBtn.x + 100;
-    this.tutorialHand.y = this.goBtn.y + 100;
+    this.tutorialHand.x = this.goBtn.x + 50;
+    this.tutorialHand.y = this.goBtn.y + 50;
     this.tutorialHand.visible = true;
 
     this.handTween = this.tweens.add({
@@ -658,14 +627,15 @@ export default class MainGame extends Phaser.Scene {
     //this.cover.visible = false;
 
     this.activeRoad = 0;
-
   }
 
   resizeGame() {
     this.gameContainer.setScale(this.scale.height / 900);
     this.centerX = (0.5 * this.scale.width * 900) / this.scale.height;
 
-    if (this.scale.width > this.scale.height) {
+    this.isPort = this.scale.width < this.scale.height;
+
+    if (!this.isPort) {
       this.roadGroup.setScale(1.5);
       this.roadGroup.y = -100;
     } else {
@@ -699,6 +669,10 @@ export default class MainGame extends Phaser.Scene {
         repeat: -1, // бесконечно (или поставь число повторений)
       });
     }
+
+    this.headBalance.visible = !this.isPort;
+    this.headerSprite.visible = !this.isPort;
+    this.headerLogo.visible = !this.isPort;
   }
 
   moveFB() {
@@ -752,7 +726,6 @@ export default class MainGame extends Phaser.Scene {
     if (this.isSoundEnable) this.sound.play("jump");
 
     if (this.activeRoad < 8) {
-
       this.chicken.play("jump");
 
       this.tweens.add({
@@ -784,8 +757,6 @@ export default class MainGame extends Phaser.Scene {
               : 100,
         });
       } else {
-        console.log("AR", this.cars[this.activeRoad].y);
-
         this.carsTween[this.activeRoad].stop();
         this.cars[this.activeRoad].y = -200;
 
@@ -814,19 +785,17 @@ export default class MainGame extends Phaser.Scene {
         this.tutorialHand.visible = true;
         this.headBalance.destroy();
         if (this.cashBalance && this.cashBalance.active)
-            this.cashBalance.destroy();
+          this.cashBalance.destroy();
 
         this.cashBalance = this.createRouletteCounter(
-          this.goBtn.x - 110,
-          this.goBtn.y + 5,
+          this.goBtn.x - 110 - this.isPort * 20,
+          this.goBtn.y + 5 + 5 * this.isPort,
           0.3,
           this.activeRoad == 1 ? 0 : this.coversText[this.activeRoad - 2],
           this.coversText[this.activeRoad - 1],
           1000,
           false,
-          "black"
-          
-
+          "yellow"
         );
         this.headBalance = this.createRouletteCounter(
           this.centerX - 230,
@@ -839,6 +808,8 @@ export default class MainGame extends Phaser.Scene {
         this.uiGroup.add(this.cashBalance);
         this.uiGroup.add(this.headBalance);
 
+        if (this.isPort) this.headBalance.visible = false;
+
         if (this.activeRoad < 7) this.chicken.play("idle");
         else {
           this.goBtn.setTexture("main", "cashout.png");
@@ -848,16 +819,11 @@ export default class MainGame extends Phaser.Scene {
 
     const cameraX = this.cameras.main.scrollX + ROAD_CELL_W;
 
-    console.log(
-      "scale dx",
-      ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chicken.x,
-      this.scale.width
-    );
-
     if (
       this.activeRoad > 0 &&
       (ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chicken.x >
-        this.scale.width - 300 || this.scale.width<this.scale.height)
+        this.scale.width - 300 ||
+        this.scale.width < this.scale.height)
     )
       this.tweens.add({
         targets: this.cameras.main,
@@ -958,8 +924,6 @@ export default class MainGame extends Phaser.Scene {
         ? this.scale.width / this.gameContainer.scale / 700
         : 0.8;
 
-    console.log(this.scale.width, this.scale.height, this.gameContainer.scale);
-
     this.pushSprite = this.add
       .sprite(this.centerX, 50 + 30 * scalePush, "ui", "push_europe.png")
       .setOrigin(0.5, 0.5)
@@ -1037,13 +1001,15 @@ export default class MainGame extends Phaser.Scene {
 
         this.handTween.stop();
 
-        this.tutorialHand.x = this.goBtn.x + 10;
-        this.tutorialHand.y = this.goBtn.y - 20;
+        this.tutorialHand.x = this.goBtn.x + 80;
+        this.tutorialHand.y = this.goBtn.y + 20;
+
+        this.uiGroup.add(this.tutorialHand);
 
         this.handTween = this.tweens.add({
           targets: this.tutorialHand,
-          x: this.tutorialHand.x - 30,
-          y: this.tutorialHand.y - 30,
+          x: this.tutorialHand.x + 30,
+          y: this.tutorialHand.y + 30,
           duration: 700,
           ease: "Sine.easeInOut",
           yoyo: true,
@@ -1053,8 +1019,8 @@ export default class MainGame extends Phaser.Scene {
 
       this.tutorialHand = this.add
         .sprite(
-          this.endPanelContainer.x + 30,
-          this.endPanelContainer.y + 50,
+          this.endPanelContainer.x + 30 + 30 * this.isPort,
+          this.endPanelContainer.y + 50 + 80 * this.isPort,
           "ui",
           "tutor_hand.png"
         )
@@ -1255,8 +1221,7 @@ export default class MainGame extends Phaser.Scene {
       repeat: -1,
     });
 
-    if (this.tutorialHand)
-      this.tutorialHand.destroy();
+    if (this.tutorialHand) this.tutorialHand.destroy();
 
     this.tutorialHand = this.add
       .sprite(
@@ -1294,13 +1259,15 @@ export default class MainGame extends Phaser.Scene {
     //this.cover.visible = false;
     this.roadSound.stop();
 
-    if (this.tutorialHand)
-      this.tutorialHand.destroy();
+    if (this.tutorialHand) this.tutorialHand.destroy();
 
     const bankScale =
       this.scale.width > this.scale.height
         ? 1
+        : this.scale.width / this.scale.height < 0.8
+        ? 0.8
         : this.scale.width / this.scale.height;
+
     this.moneyAddContainer = this.add.container();
     this.moneyAddBG = this.add
       .sprite(this.centerX, 450, "bg4")
@@ -1493,9 +1460,9 @@ export default class MainGame extends Phaser.Scene {
     this.moneyAddContainer.add(this.chicon4);
 
     this.moneyBalance = this.createRouletteCounter(
-      this.centerX - 150,
+      this.centerX - 150 + 80 * this.isPort,
       425 - 150 * bankScale,
-      0.6 * bankScale,
+      0.6 * bankScale + 0.4 * !this.isPort,
       0,
       25000000,
       2000,
@@ -1673,7 +1640,6 @@ export default class MainGame extends Phaser.Scene {
         offsetX += spacing / 2;
         if (!isSmall) offsetX += spacing / 2;
 
-
         let frameName = "nums" + dirprefix + "/0$.png";
         const sprite = self.add.sprite(
           offsetX,
@@ -1696,7 +1662,6 @@ export default class MainGame extends Phaser.Scene {
         callback: () => {
           currentVal += increment;
           if (currentVal >= max) {
-            console.log(currentVal);
             currentVal = max;
             updateDisplay(currentVal);
             timer.remove(); // Завершаем
