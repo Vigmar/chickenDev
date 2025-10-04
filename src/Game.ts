@@ -320,6 +320,8 @@ export default class MainGame extends Phaser.Scene {
     this.chickenContainer.add(this.chicken);
     this.chickenContainer.add(this.chickenBalance);
 
+    
+
     for (let i = 0; i < ROAD_COLS; i++) {
       this.cars[i] = this.add
         .sprite(
@@ -621,6 +623,14 @@ export default class MainGame extends Phaser.Scene {
     this.scale.on("resize", this.resizeGame, this);
   }
 
+  update()
+  {
+
+    if (this.chickenContainer && 
+      this.activeRoad > 0 && this.scale.width < this.scale.height)
+          this.cameras.main.scrollX = this.chickenContainer.x+90 - this.cameras.main.width / 2;
+  }
+
   onMainGameplayStart() {
     this.tutorialHand = this.add
       .sprite(this.centerX, 250, "ui", "tutor_hand.png")
@@ -862,19 +872,32 @@ export default class MainGame extends Phaser.Scene {
       },
     });
 
-    const cameraX = this.cameras.main.scrollX + ROAD_CELL_W;
+    const tutorialScale =
+      this.scale.width > this.scale.height
+        ? 1
+        : this.scale.width / this.scale.height;
 
+    const cameraX = this.cameras.main.scrollX + ROAD_CELL_W/tutorialScale;
+
+    
     if (
       this.activeRoad > 0 &&
       (ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chickenContainer.x >
         this.scale.width - 300 ||
         this.scale.width < this.scale.height)
     )
+    {
+      
+
+    }
+    /*
       this.tweens.add({
         targets: this.cameras.main,
         scrollX: cameraX,
         duration: FENCE_MOVE_TIME,
       });
+      */
+    
   }
 
   onCarTweenComplete(col: number) {
