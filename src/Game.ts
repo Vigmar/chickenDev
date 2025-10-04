@@ -54,6 +54,7 @@ export default class MainGame extends Phaser.Scene {
   wheelTween: Phaser.Tweens.Tween;
   uiPanel: Phaser.GameObjects.Sprite;
   headerSprite: Phaser.GameObjects.Sprite;
+  headerLogo: Phaser.GameObjects.Sprite;
 
   cover: Phaser.GameObjects.Rectangle;
   coinEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -106,7 +107,7 @@ export default class MainGame extends Phaser.Scene {
   balance: number = 0;
   isJumping: boolean = false;
 
-  isSoundEnable: boolean = false;
+  isSoundEnable: boolean = true;
   isResult: boolean = false;
   isRotating: boolean = false;
   wheelRound: number = 0;
@@ -283,7 +284,7 @@ export default class MainGame extends Phaser.Scene {
     this.chicken = this.add
       .sprite(CHICKEN_START_X, CHICKEN_START_Y, "chicken")
       .setOrigin(0, 0)
-      .setScale(0.75);
+      .setScale(0.6);
 
     for (let i = 0; i < ROAD_COLS; i++) {
       this.cars[i] = this.add
@@ -473,12 +474,12 @@ export default class MainGame extends Phaser.Scene {
     });
 
     this.headerSprite = this.add
-      .sprite(this.centerX - 30, 20, "main", "header.png")
+      .sprite(this.centerX - 80, 20, "main", "header.png")
       .setOrigin(1, 0)
       .setScale(1.2);
 
     this.headBalance = this.createRouletteCounter(
-      this.centerX - 170,
+      this.centerX - 220,
       43,
       0.3,
       0,
@@ -486,6 +487,11 @@ export default class MainGame extends Phaser.Scene {
       0,
       false
     );
+
+    this.headerLogo = this.add
+      .sprite(this.centerX, 20, "main", "logo.png")
+      .setOrigin(0.5, 0)
+      .setScale(0.5);
 
     this.soundIcon = this.add
       .sprite(5, this.scale.height - 5, "main", "sound_button.png")
@@ -517,6 +523,7 @@ export default class MainGame extends Phaser.Scene {
     this.bottomBg.fillRect(0, 100 + ROAD_CELL_H * ROAD_ROWS, 2000, 1000); // x, y, ширина, высота
     this.uiGroup.add(this.bottomBg);
 
+    /*
     this.onlineSprite = this.add
       .sprite(0, 100, "main", "europe/top.png")
       .setOrigin(0, 0);
@@ -554,11 +561,13 @@ export default class MainGame extends Phaser.Scene {
     this.uiGroup.add(this.onlineSprite);
     this.uiGroup.add(this.onlineText);
     this.uiGroup.add(this.usernameSprite);
+    */
     this.uiGroup.add(this.uiPanel);
     this.uiGroup.add(this.goBtn);
 
     this.uiGroup.add(this.headerSprite);
     this.uiGroup.add(this.headBalance);
+    this.uiGroup.add(this.headerLogo);
     //this.uiGroup.add(this.soundIcon);
     this.roadGroup.y = 100;
 
@@ -622,36 +631,6 @@ export default class MainGame extends Phaser.Scene {
     //this.startPush();
     this.startPromoScreen();
     this.scale.on("resize", this.resizeGame, this);
-  }
-
-  onThirdStep() {
-    //this.goBtn.setTexture("main", "risk.png");
-    this.goBtn.setInteractive(false);
-    this.tutorialHand.destroy();
-
-    const tutorialScale =
-      this.scale.width > this.scale.height
-        ? 1
-        : this.scale.width / this.scale.height;
-
-    this.tutorialHand = this.add
-      .sprite(this.goBtn.x + 100, this.goBtn.y + 100, "ui", "tutor_hand.png")
-      .setAngle(-45)
-      .setScale(tutorialScale);
-    this.uiGroup.add(this.tutorialHand);
-
-    this.tutorialHand.visible = true;
-
-    this.handTween = this.tweens.add({
-      targets: this.tutorialHand,
-      x: this.tutorialHand.x - 30,
-      y: this.tutorialHand.y - 30,
-      duration: 700, // 0.5 секунды до точки
-      ease: "Sine.easeInOut", // плавное ускорение/замедление
-      yoyo: true, // возвращается обратно
-      repeat: -1, // бесконечно (или поставь число повторений)
-      // repeat: 3,                     // например, 3 раза туда-обратно
-    });
   }
 
   onMainGameplayStart() {
@@ -773,6 +752,9 @@ export default class MainGame extends Phaser.Scene {
     if (this.isSoundEnable) this.sound.play("jump");
 
     if (this.activeRoad < 8) {
+
+      this.chicken.play("jump");
+
       this.tweens.add({
         targets: this.fences[this.activeRoad],
         y: FENCE_DELTA_Y,
@@ -810,7 +792,7 @@ export default class MainGame extends Phaser.Scene {
         this.carsTween[this.activeRoad] = this.tweens.add({
           targets: this.cars[this.activeRoad],
           y: ROAD_CELL_H * ROAD_ROWS + 200,
-          duration: FENCE_MOVE_TIME + 200,
+          duration: FENCE_MOVE_TIME + 500,
           onComplete: () => {
             // this.onCarTweenComplete(this.activeRoad);
           },
@@ -831,6 +813,8 @@ export default class MainGame extends Phaser.Scene {
 
         this.tutorialHand.visible = true;
         this.headBalance.destroy();
+        if (this.cashBalance && this.cashBalance.active)
+            this.cashBalance.destroy();
 
         this.cashBalance = this.createRouletteCounter(
           this.goBtn.x - 110,
@@ -838,10 +822,14 @@ export default class MainGame extends Phaser.Scene {
           0.3,
           this.activeRoad == 1 ? 0 : this.coversText[this.activeRoad - 2],
           this.coversText[this.activeRoad - 1],
-          1000
+          1000,
+          false,
+          "black"
+          
+
         );
         this.headBalance = this.createRouletteCounter(
-          this.centerX - 170,
+          this.centerX - 230,
           43,
           0.3,
           this.activeRoad == 1 ? 0 : this.coversText[this.activeRoad - 2],
@@ -868,8 +856,8 @@ export default class MainGame extends Phaser.Scene {
 
     if (
       this.activeRoad > 0 &&
-      ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chicken.x >
-        this.scale.width + 100
+      (ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chicken.x >
+        this.scale.width - 300 || this.scale.width<this.scale.height)
     )
       this.tweens.add({
         targets: this.cameras.main,
@@ -1267,6 +1255,9 @@ export default class MainGame extends Phaser.Scene {
       repeat: -1,
     });
 
+    if (this.tutorialHand)
+      this.tutorialHand.destroy();
+
     this.tutorialHand = this.add
       .sprite(
         this.finalBtn.x + 120,
@@ -1302,6 +1293,9 @@ export default class MainGame extends Phaser.Scene {
   startMoneyAddScreen() {
     //this.cover.visible = false;
     this.roadSound.stop();
+
+    if (this.tutorialHand)
+      this.tutorialHand.destroy();
 
     const bankScale =
       this.scale.width > this.scale.height
@@ -1499,12 +1493,15 @@ export default class MainGame extends Phaser.Scene {
     this.moneyAddContainer.add(this.chicon4);
 
     this.moneyBalance = this.createRouletteCounter(
-      this.centerX - 50,
-      425 - 250 * bankScale,
+      this.centerX - 150,
+      425 - 150 * bankScale,
       0.6 * bankScale,
       0,
-      523,
-      2000
+      25000000,
+      2000,
+      false,
+      "black",
+      false
     );
     this.moneyAddContainer.add(this.moneyBalance);
     this.moneyAddContainer.x = 2000;
@@ -1654,6 +1651,7 @@ export default class MainGame extends Phaser.Scene {
       offsetX -= spacing / 3;
 
       if (!isNoCur) {
+        /*
         for (let i = 0; i < 3; i++) {
           let frameName =
             i == 0
@@ -1670,11 +1668,13 @@ export default class MainGame extends Phaser.Scene {
           offsetX += spacing / 2;
           if (!isSmall) offsetX += spacing / 2;
         }
+          */
 
         offsetX += spacing / 2;
         if (!isSmall) offsetX += spacing / 2;
 
-        let frameName = "nums" + dirprefix + "/0€.png";
+
+        let frameName = "nums" + dirprefix + "/0$.png";
         const sprite = self.add.sprite(
           offsetX,
           isSmall ? 15 : 0,

@@ -31,7 +31,7 @@ export const CAR_START_Y = -200;
 export const CAR_DELTA_X = 172;
 export const CAR_DELTA_Y = 220;
 export const CAR_FRAMES = ['icecream_wagon.png','police_car.png','purple_truck.png','fire_truck.png'];
-export const CAR_MOVE_TIME = 1000;
+export const CAR_MOVE_TIME = 2000;
 
 export const GIFT_SPRITE_SCALE = 1.25;
 export const FONT_NAME = "font1";
