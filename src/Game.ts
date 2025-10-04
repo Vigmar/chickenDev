@@ -25,6 +25,7 @@ import {
 } from "./constants";
 import { getScaleValue } from "./getScaleValue";
 
+const chickenMult = [2, 4, 14, 29, 84, 209, 709];
 const coversSprites = ["1", "2", "3", "4", "5", "6", "7"];
 const coversText = [50000, 100000, 250000, 375000, 1375000, 12500000, 25000000];
 
@@ -77,6 +78,8 @@ export default class MainGame extends Phaser.Scene {
   roadSound: Phaser.Sound.BaseSound;
 
   chicken: Phaser.GameObjects.Sprite;
+  chickenBalance: Phaser.GameObjects.Container;
+  chickenContainer: Phaser.GameObjects.Container;
 
   moneyAddContainer: Phaser.GameObjects.Container;
   moneyAddBG: Phaser.GameObjects.Sprite;
@@ -296,9 +299,26 @@ export default class MainGame extends Phaser.Scene {
     );
 
     this.chicken = this.add
-      .sprite(CHICKEN_START_X, CHICKEN_START_Y, "chicken")
+      .sprite(0, 0, "chicken")
       .setOrigin(0, 0)
       .setScale(0.6);
+
+    this.chickenBalance = this.createRouletteCounter(
+      70,
+      180,
+      0.5,
+      0,
+      0,
+      0,
+      true
+    );
+
+    this.chickenContainer = this.add.container(
+      CHICKEN_START_X,
+      CHICKEN_START_Y
+    );
+    this.chickenContainer.add(this.chicken);
+    this.chickenContainer.add(this.chickenBalance);
 
     for (let i = 0; i < ROAD_COLS; i++) {
       this.cars[i] = this.add
@@ -335,7 +355,7 @@ export default class MainGame extends Phaser.Scene {
       this.roadGroup.add(this.fences[i]);
     }
 
-    this.roadGroup.add(this.chicken);
+    this.roadGroup.add(this.chickenContainer);
 
     for (let i = 0; i < ROAD_COLS; i++)
       this.carsTween[i] = this.tweens.add({
@@ -471,7 +491,7 @@ export default class MainGame extends Phaser.Scene {
         this.centerX + 30 + 140 * !this.isPort,
         150 + ROAD_CELL_H * ROAD_ROWS,
         "main",
-        "go_button.png"
+        this.isPort ? "go_button_2.png" : "go_button.png"
       )
       .setOrigin(0, 0.5);
 
@@ -498,8 +518,7 @@ export default class MainGame extends Phaser.Scene {
       0.3,
       0,
       0,
-      0,
-      false
+      0
     );
 
     this.headerLogo = this.add
@@ -605,7 +624,8 @@ export default class MainGame extends Phaser.Scene {
   onMainGameplayStart() {
     this.tutorialHand = this.add
       .sprite(this.centerX, 250, "ui", "tutor_hand.png")
-      .setAngle(-45);
+      .setAngle(-45)
+      .setScale(0.8);
 
     this.uiGroup.add(this.tutorialHand);
 
@@ -676,11 +696,11 @@ export default class MainGame extends Phaser.Scene {
   }
 
   moveFB() {
-    const finalX = this.chicken.x + 30;
+    const finalX = this.chickenContainer.x + 30;
     this.chicken.play("jump");
 
     this.tweens.add({
-      targets: this.chicken,
+      targets: this.chickenContainer,
       x: finalX,
       duration: 200,
       ease: "Sine.easeInOut", // плавное ускорение/замедление
@@ -709,8 +729,8 @@ export default class MainGame extends Phaser.Scene {
     if (this.activeRoad > 0) {
       this.roadGroup.remove(this.mcovers[this.activeRoad - 1]);
       this.roadGroup.add(this.mcovers[this.activeRoad - 1]);
-      this.roadGroup.remove(this.chicken);
-      this.roadGroup.add(this.chicken);
+      this.roadGroup.remove(this.chickenContainer);
+      this.roadGroup.add(this.chickenContainer);
 
       this.mcovers[this.activeRoad - 1].setScale(0.8);
 
@@ -719,8 +739,8 @@ export default class MainGame extends Phaser.Scene {
 
     this.fences[this.activeRoad].visible = true;
 
-    const finalX = this.chicken.x + ROAD_CELL_W;
-    const startY = this.chicken.y;
+    const finalX = this.chickenContainer.x + ROAD_CELL_W;
+    const startY = this.chickenContainer.y;
     const jumpHeight = 50;
 
     if (this.isSoundEnable) this.sound.play("jump");
@@ -744,19 +764,25 @@ export default class MainGame extends Phaser.Scene {
 
       this.carsTween[this.activeRoad].stop();
 
-      if (this.cars[this.activeRoad].y < FENCE_DELTA_Y) {
+      //if (this.cars[this.activeRoad].y < FENCE_DELTA_Y)
+
+      {
+        this.carsTween[this.activeRoad].stop();
+        this.cars[this.activeRoad].y = -200;
         this.carsTween[this.activeRoad] = this.tweens.add({
           targets: this.cars[this.activeRoad],
           y: FENCE_DELTA_Y,
-          duration: FENCE_MOVE_TIME,
+          duration: FENCE_MOVE_TIME * 2,
           easy: "Quart.easeOut",
           repeat: 0,
           delay:
             this.cars[this.activeRoad].y == CAR_START_Y
-              ? Math.random() * 500 + 100
+              ? Math.random() * 500
               : 100,
         });
-      } else {
+      }
+      /*
+      else {
         this.carsTween[this.activeRoad].stop();
         this.cars[this.activeRoad].y = -200;
 
@@ -769,10 +795,11 @@ export default class MainGame extends Phaser.Scene {
           },
         });
       }
+      */
     }
 
     this.tweens.add({
-      targets: this.chicken,
+      targets: this.chickenContainer,
       x: finalX,
       duration: FENCE_MOVE_TIME,
       onComplete: () => {
@@ -781,6 +808,21 @@ export default class MainGame extends Phaser.Scene {
         //this.coversText[this.activeRoad].visible = false;
 
         this.activeRoad += 1;
+
+        this.chickenContainer.remove(this.chickenBalance);
+        this.chickenBalance.destroy();
+        this.chickenBalance = this.createRouletteCounter(
+          this.activeRoad>5?50:70,
+          180,
+          0.5,
+          this.activeRoad == 1 ? 0 : chickenMult[this.activeRoad - 2],
+          chickenMult[this.activeRoad - 1],
+          300,
+          true
+          
+        );
+
+        this.chickenContainer.add(this.chickenBalance);
 
         this.tutorialHand.visible = true;
         this.headBalance.destroy();
@@ -812,7 +854,10 @@ export default class MainGame extends Phaser.Scene {
 
         if (this.activeRoad < 7) this.chicken.play("idle");
         else {
-          this.goBtn.setTexture("main", "cashout.png");
+          this.goBtn.setTexture(
+            "main",
+            this.isPort ? "cashout_2.png" : "cashout.png"
+          );
         }
       },
     });
@@ -821,7 +866,7 @@ export default class MainGame extends Phaser.Scene {
 
     if (
       this.activeRoad > 0 &&
-      (ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chicken.x >
+      (ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chickenContainer.x >
         this.scale.width - 300 ||
         this.scale.width < this.scale.height)
     )
@@ -1019,13 +1064,15 @@ export default class MainGame extends Phaser.Scene {
 
       this.tutorialHand = this.add
         .sprite(
-          this.endPanelContainer.x + 30 + 30 * this.isPort,
-          this.endPanelContainer.y + 50 + 80 * this.isPort,
+          this.endPanelContainer.x + 10,
+          this.endPanelContainer.y + 120,
           "ui",
           "tutor_hand.png"
         )
         .setAngle(-45)
-        .setScale(0.5);
+        .setScale(0.8);
+
+      this.uiGroup.add(this.tutorialHand);
 
       this.handTween = this.tweens.add({
         targets: this.tutorialHand,
@@ -1124,7 +1171,7 @@ export default class MainGame extends Phaser.Scene {
       .setScale(0.6);
 
     this.finalCoin2 = this.add
-      .sprite(this.centerX - 150, 140, "main", "coin_flip.png")
+      .sprite(this.centerX - 150, 140, "main", "coin.png")
       .setOrigin(0.5, 0)
       .setScale(0.6);
 
@@ -1231,7 +1278,7 @@ export default class MainGame extends Phaser.Scene {
         "tutor_hand.png"
       )
       .setAngle(-45)
-      .setScale(0.5);
+      .setScale(0.6);
 
     this.tutorialHand.visible = true;
     this.finalContainer.add(this.tutorialHand);
@@ -1258,6 +1305,7 @@ export default class MainGame extends Phaser.Scene {
   startMoneyAddScreen() {
     //this.cover.visible = false;
     this.roadSound.stop();
+    this.goBtn.x = -1000;
 
     if (this.tutorialHand) this.tutorialHand.destroy();
 
@@ -1462,7 +1510,7 @@ export default class MainGame extends Phaser.Scene {
     this.moneyBalance = this.createRouletteCounter(
       this.centerX - 150 + 80 * this.isPort,
       425 - 150 * bankScale,
-      0.6 * bankScale + 0.4 * !this.isPort,
+      0.6 * bankScale,
       0,
       25000000,
       2000,
@@ -1567,7 +1615,7 @@ export default class MainGame extends Phaser.Scene {
     min,
     max,
     duration,
-    isSmall = true,
+    isX = false,
     dirprefix = "",
     isNoCur = true
   ) {
@@ -1598,6 +1646,14 @@ export default class MainGame extends Phaser.Scene {
       container.removeAll(true);
 
       let offsetX = 0;
+
+      if (isX) {
+        let frameName = "nums" + dirprefix + "/x.png";
+        const sprite = self.add.sprite(offsetX, 0, atlasKey, frameName).setScale(0.8);
+        container.add(sprite);
+        offsetX += spacing;
+      }
+
       for (let char of str) {
         if (char === " ") continue;
 
@@ -1618,36 +1674,11 @@ export default class MainGame extends Phaser.Scene {
       offsetX -= spacing / 3;
 
       if (!isNoCur) {
-        /*
-        for (let i = 0; i < 3; i++) {
-          let frameName =
-            i == 0
-              ? "nums" + dirprefix + "/dot.png"
-              : "nums" + dirprefix + "/00.png";
-          const sprite = self.add.sprite(
-            offsetX,
-            isSmall ? 15 : 0,
-            atlasKey,
-            frameName
-          );
-          if (isSmall) sprite.setScale(0.5);
-          container.add(sprite);
-          offsetX += spacing / 2;
-          if (!isSmall) offsetX += spacing / 2;
-        }
-          */
-
-        offsetX += spacing / 2;
-        if (!isSmall) offsetX += spacing / 2;
+        offsetX += spacing;
 
         let frameName = "nums" + dirprefix + "/0$.png";
-        const sprite = self.add.sprite(
-          offsetX,
-          isSmall ? 15 : 0,
-          atlasKey,
-          frameName
-        );
-        if (isSmall) sprite.setScale(0.5);
+        const sprite = self.add.sprite(offsetX, 0, atlasKey, frameName);
+
         container.add(sprite);
       }
     }
