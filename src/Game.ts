@@ -141,8 +141,7 @@ export default class MainGame extends Phaser.Scene {
       "assets/first_assets.json"
     );
 
-    this.load.atlas("wheel", "assets/p3.png", "assets/p3.json");
-
+    
     this.load.atlas(
       "ui",
       "assets/second_assets.png",
@@ -628,7 +627,13 @@ export default class MainGame extends Phaser.Scene {
 
     if (this.chickenContainer && 
       this.activeRoad > 0 && this.scale.width < this.scale.height)
-          this.cameras.main.scrollX = this.chickenContainer.x+90 - this.cameras.main.width / 2;
+      {
+           const bounds = this.chickenContainer.getBounds();
+    const worldX = bounds.centerX+50; // мировая X-координата центра объекта
+
+        this.cameras.main.scrollX = worldX - this.cameras.main.width / 2;
+      }
+          
   }
 
   onMainGameplayStart() {
