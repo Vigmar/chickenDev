@@ -59,6 +59,7 @@ export default class MainGame extends Phaser.Scene {
 
   cover: Phaser.GameObjects.Rectangle;
   coinEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+  confEmitters: Phaser.GameObjects.Particles.ParticleEmitter[];
   loseEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
   endEffectAnim: Phaser.GameObjects.Sprite;
   endPanel: Phaser.GameObjects.Sprite;
@@ -141,7 +142,6 @@ export default class MainGame extends Phaser.Scene {
       "assets/first_assets.json"
     );
 
-    
     this.load.atlas(
       "ui",
       "assets/second_assets.png",
@@ -319,8 +319,6 @@ export default class MainGame extends Phaser.Scene {
     this.chickenContainer.add(this.chicken);
     this.chickenContainer.add(this.chickenBalance);
 
-    
-
     for (let i = 0; i < ROAD_COLS; i++) {
       this.cars[i] = this.add
         .sprite(
@@ -458,15 +456,12 @@ export default class MainGame extends Phaser.Scene {
     });
 
     this.anims.create({
-      key: "loseeffect",
+      key: "confeffect",
       frames: [
-        { key: "main", frame: "animation_lose/feather_frames000.png" },
-        { key: "main", frame: "animation_lose/feather_frames001.png" },
-        { key: "main", frame: "animation_lose/feather_frames002.png" },
-        { key: "main", frame: "animation_lose/feather_frames003.png" },
-        { key: "main", frame: "animation_lose/feather_frames004.png" },
-        { key: "main", frame: "animation_lose/feather_frames005.png" },
-        { key: "main", frame: "animation_lose/feather_frames006.png" },
+        { key: "ui", frame: "particles/1.png" },
+        { key: "ui", frame: "particles/2.png" },
+        { key: "ui", frame: "particles/3.png" },
+        { key: "ui", frame: "particles/4.png" },
       ],
       frameRate: 15, // скорость анимации
       repeat: 0, // проиграть один раз (0 = один раз, -1 = бесконечно)
@@ -501,6 +496,11 @@ export default class MainGame extends Phaser.Scene {
     // Обработчик клика
     this.goBtn.on("pointerdown", (pointer) => {
       if (this.activeRoad < 7) {
+        if (this.activeRoad == 1) {
+          this.startMoneyEffect();
+          this.startConfEffect();
+        }
+
         this.tutorialHand.visible = false;
         this.onJump();
       } else {
@@ -622,18 +622,17 @@ export default class MainGame extends Phaser.Scene {
     this.scale.on("resize", this.resizeGame, this);
   }
 
-  update()
-  {
+  update() {
+    if (
+      this.chickenContainer &&
+      this.activeRoad > 0 &&
+      this.scale.width < this.scale.height
+    ) {
+      const bounds = this.chickenContainer.getBounds();
+      const worldX = bounds.centerX + 50; // мировая X-координата центра объекта
 
-    if (this.chickenContainer && 
-      this.activeRoad > 0 && this.scale.width < this.scale.height)
-      {
-           const bounds = this.chickenContainer.getBounds();
-    const worldX = bounds.centerX+50; // мировая X-координата центра объекта
-
-        this.cameras.main.scrollX = worldX - this.cameras.main.width / 2;
-      }
-          
+      this.cameras.main.scrollX = worldX - this.cameras.main.width / 2;
+    }
   }
 
   onMainGameplayStart() {
@@ -827,14 +826,13 @@ export default class MainGame extends Phaser.Scene {
         this.chickenContainer.remove(this.chickenBalance);
         this.chickenBalance.destroy();
         this.chickenBalance = this.createRouletteCounter(
-          this.activeRoad>5?50:70,
+          this.activeRoad > 5 ? 50 : 70,
           180,
           0.5,
           this.activeRoad == 1 ? 0 : chickenMult[this.activeRoad - 2],
           chickenMult[this.activeRoad - 1],
           300,
           true
-          
         );
 
         this.chickenContainer.add(this.chickenBalance);
@@ -882,18 +880,14 @@ export default class MainGame extends Phaser.Scene {
         ? 1
         : this.scale.width / this.scale.height;
 
-    const cameraX = this.cameras.main.scrollX + ROAD_CELL_W/tutorialScale;
+    const cameraX = this.cameras.main.scrollX + ROAD_CELL_W / tutorialScale;
 
-    
     if (
       this.activeRoad > 0 &&
       (ROAD_START_X + ROAD_CELL_W * ROAD_COLS - this.chickenContainer.x >
         this.scale.width - 300 ||
         this.scale.width < this.scale.height)
-    )
-    {
-      
-
+    ) {
     }
     /*
       this.tweens.add({
@@ -902,7 +896,6 @@ export default class MainGame extends Phaser.Scene {
         duration: FENCE_MOVE_TIME,
       });
       */
-    
   }
 
   onCarTweenComplete(col: number) {
@@ -950,6 +943,49 @@ export default class MainGame extends Phaser.Scene {
       //this.startCoinEffect(x,y);
       this.startEndPanel(this.centerX, 425);
     });
+  }
+
+  startMoneyEffect() {
+    this.moneys = [];
+
+    const bounds = this.chicken.getBounds();
+    console.log("BB", bounds.centerX);
+    const localPos = { x: bounds.centerX, y: bounds.centerY - 20 };
+
+    console.log(localPos);
+    const uiBounds = this.cashBalance.getBounds();
+
+    for (let i = 0; i < 4; i++) {
+      this.moneys[i] = this.add
+        .sprite(localPos.x, localPos.y, "ui", "banknote.png")
+        .setOrigin(0.5, 0.5)
+        .setScale(this.isPort ? 0.6 : 1);
+
+      //this.uiGroup.add(this.moneys[i]);
+
+      // Этап 1: вверх-влево
+      this.tweens.add({
+        targets: this.moneys[i],
+        x: localPos.x - 50,
+        y: localPos.y - 100,
+        duration: 300,
+        ease: "Cubic.easeOut",
+        delay: 150 * i,
+        onComplete: () => {
+          // Этап 2: парабола вправо-вниз
+          this.tweens.add({
+            targets: this.moneys[i],
+            x: uiBounds.x,
+            y: uiBounds.y,
+            duration: 400,
+            ease: "Quad.easeIn", // ускоряется вниз — создаёт дугу
+            onComplete: () => {
+              this.moneys[i].destroy();
+            },
+          });
+        },
+      });
+    }
   }
 
   startEndPanelTweens() {
@@ -1330,6 +1366,34 @@ export default class MainGame extends Phaser.Scene {
     });
   }
 
+  startConfEffect() {
+    this.confEmitters = [];
+
+    for (let i = 0; i < 10; i++) {
+      this.confEmitters[i] = this.add.particles(
+        this.centerX - this.scale.width * (Math.random() - 0.5),
+        425 - 600 * (Math.random() - 0.5),
+        "ui",
+        {
+          anim: "confeffect",
+          quantity: 1,
+          speed: { min: 500, max: 600 },
+          angle: { min: 0, max: 360 },
+          gravityY: 0,
+          scale: { start: 0.5, end: 1 },
+          lifespan: 900,
+        }
+      );
+
+      this.uiGroup.add(this.confEmitters[i]);
+
+      this.confEmitters[i].flow(100, 5);
+      this.time.delayedCall(500, () => {
+        this.confEmitters[i].stop();
+      });
+    }
+  }
+
   startMoneyAddScreen() {
     //this.cover.visible = false;
     this.roadSound.stop();
@@ -1677,7 +1741,9 @@ export default class MainGame extends Phaser.Scene {
 
       if (isX) {
         let frameName = "nums" + dirprefix + "/x.png";
-        const sprite = self.add.sprite(offsetX, 0, atlasKey, frameName).setScale(0.8);
+        const sprite = self.add
+          .sprite(offsetX, 0, atlasKey, frameName)
+          .setScale(0.8);
         container.add(sprite);
         offsetX += spacing;
       }
