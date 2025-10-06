@@ -33,6 +33,7 @@ export default class MainGame extends Phaser.Scene {
   roadGroup: Phaser.GameObjects.Container;
   uiGroup: Phaser.GameObjects.Container;
   gameContainer: Phaser.GameObjects.Container;
+  moneyContainer: Phaser.GameObjects.Container;
   topBg: Phaser.GameObjects.Graphics;
   bottomBg: Phaser.GameObjects.Graphics;
   roadCols: Phaser.GameObjects.Container[];
@@ -157,6 +158,7 @@ export default class MainGame extends Phaser.Scene {
     //this.cameras.main.setViewport(0, 0, 800, 1200); // x, y, width, height
 
     this.gameContainer = this.add.container();
+    this.moneyContainer = this.add.container(); 
 
     this.roadGroup = this.add.container();
     this.uiGroup = this.add.container();
@@ -178,9 +180,12 @@ export default class MainGame extends Phaser.Scene {
 
     // Добавляем uiGroup в эту камеру
     uiCamera.ignore(this.roadGroup); // Основная сцена — не рисуем в UI камере
+    
 
     // Основная камера игнорирует UI
     this.cameras.main.ignore(this.uiGroup);
+    this.cameras.main.ignore(this.moneyContainer);
+
     this.cameras.main.roundPixels = true;
 
     this.roadCols = [];
@@ -950,11 +955,20 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startMoneyEffect() {
+
+    
+
     this.moneys = [];
 
     const bounds = this.chicken.getBounds();
     console.log("BB", bounds.centerX);
     const localPos = { x: bounds.centerX, y: bounds.centerY - 20 };
+
+    if (this.isPort)
+    {
+      localPos.x = this.scale.width/2 - 50;
+      localPos.y = this.scale.height/3;
+    }
 
     console.log(localPos);
     const uiBounds = this.cashBalance.getBounds();
@@ -965,7 +979,11 @@ export default class MainGame extends Phaser.Scene {
         .setOrigin(0.5, 0.5)
         .setScale(this.isPort ? 0.6 : 1);
 
-      //this.uiGroup.add(this.moneys[i]);
+        
+
+      this.moneyContainer.add(this.moneys[i]);
+
+      console.log("CC",i);
 
       // Этап 1: вверх-влево
       this.tweens.add({
