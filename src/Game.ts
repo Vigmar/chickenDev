@@ -105,8 +105,10 @@ export default class MainGame extends Phaser.Scene {
   finalBtn: Phaser.GameObjects.Sprite;
   finalFlag: Phaser.GameObjects.Sprite;
   moneys: Phaser.GameObjects.Sprite[];
+  moneysTween: Phaser.Tweens.Tween[];
 
   isPort: boolean;
+  endEffect: boolean;
   centerX: number;
   scaleValue: number;
   activeRoad: number;
@@ -500,6 +502,10 @@ export default class MainGame extends Phaser.Scene {
 
     // Обработчик клика
     this.goBtn.on("pointerdown", (pointer) => {
+
+      if (this.endEffect)
+          return;
+
       if (this.activeRoad < 7) {
         
         this.tutorialHand.visible = false;
@@ -944,7 +950,7 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startWinEffect(x, y, round = 0) {
-    if (this.isSoundEnable) this.sound.play("win");
+    //if (this.isSoundEnable) this.sound.play("win");
 
     if (this.gameRound == 2) this.startPush();
 
@@ -956,12 +962,24 @@ export default class MainGame extends Phaser.Scene {
 
   startMoneyEffect() {
 
-    
+    if (this.moneys && this.moneys.length>0)
+    for (let i = 0; i < 4; i++) {
+      if (this.moneys[i] && this.moneys[i].active)
+      {
+        if (this.moneysTween[i])
+            this.moneysTween[i].stop();
+
+          this.moneys[i].destroy();
+
+          
+      }
+    }
 
     this.moneys = [];
+    this.moneysTween = [];
 
     const bounds = this.chicken.getBounds();
-    console.log("BB", bounds.centerX);
+    
     const localPos = { x: bounds.centerX, y: bounds.centerY - 20 };
 
     if (this.isPort)
@@ -970,7 +988,7 @@ export default class MainGame extends Phaser.Scene {
       localPos.y = this.scale.height/3;
     }
 
-    console.log(localPos);
+    
     const uiBounds = this.cashBalance.getBounds();
 
     for (let i = 0; i < 4; i++) {
@@ -983,14 +1001,12 @@ export default class MainGame extends Phaser.Scene {
 
       this.moneyContainer.add(this.moneys[i]);
 
-      console.log("CC",i);
-
       // Этап 1: вверх-влево
-      this.tweens.add({
+      this.moneysTween[i] = this.tweens.add({
         targets: this.moneys[i],
         x: localPos.x - 50,
         y: localPos.y - 100,
-        duration: 300,
+        duration: 200,
         ease: "Cubic.easeOut",
         delay: 150 * i,
         onComplete: () => {
@@ -999,7 +1015,7 @@ export default class MainGame extends Phaser.Scene {
             targets: this.moneys[i],
             x: uiBounds.x,
             y: uiBounds.y,
-            duration: 400,
+            duration: 300,
             ease: "Quad.easeIn", // ускоряется вниз — создаёт дугу
             onComplete: () => {
               this.moneys[i].destroy();
@@ -1389,6 +1405,8 @@ export default class MainGame extends Phaser.Scene {
   }
 
   startConfEffect() {
+    this.endEffect  = true;
+    if (this.isSoundEnable) this.sound.play("win");
     this.confEmitters = [];
 
     for (let i = 0; i < 10; i++) {
@@ -1718,7 +1736,7 @@ export default class MainGame extends Phaser.Scene {
       this.coinEmitter.stop();
     });
 
-    if (this.isSoundEnable) this.sound.play("win");
+    
 
     //if (isWin) this.startWinEffect(this.centerX, 425);
     //else this.startLoseEffect(this.centerX, 425);
