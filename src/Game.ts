@@ -496,15 +496,12 @@ export default class MainGame extends Phaser.Scene {
     // Обработчик клика
     this.goBtn.on("pointerdown", (pointer) => {
       if (this.activeRoad < 7) {
-        if (this.activeRoad == 1) {
-          this.startMoneyEffect();
-          this.startConfEffect();
-        }
-
+        
         this.tutorialHand.visible = false;
         this.onJump();
       } else {
-        this.startMoneyAddScreen();
+        //this.startMoneyAddScreen();
+        this.startResultScreen();
       }
     });
 
@@ -867,6 +864,9 @@ export default class MainGame extends Phaser.Scene {
 
         if (this.activeRoad < 7) this.chicken.play("idle");
         else {
+
+          this.startMoneyEffect();
+
           this.goBtn.setTexture(
             "main",
             this.isPort ? "cashout_2.png" : "cashout.png"
@@ -1649,7 +1649,9 @@ export default class MainGame extends Phaser.Scene {
     //if (isWin) this.startWinEffect(this.centerX, 425);
     //else this.startLoseEffect(this.centerX, 425);
 
-    this.time.delayedCall(500, () => {
+    this.startConfEffect();
+
+    this.time.delayedCall(2000, () => {
       this.startMoneyAddScreen();
     });
   }
