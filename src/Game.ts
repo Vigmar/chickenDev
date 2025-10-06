@@ -129,6 +129,7 @@ export default class MainGame extends Phaser.Scene {
     this.load.audio("beep", "sounds/06_beep.mp3");
     this.load.audio("chicken", "sounds/05_noise.mp3");
     this.load.audio("road", "sounds/roadamb.mp3");
+    this.load.audio("click", "sounds/click.mp3");
 
     this.load.image("packshot_arca", "/assets/packshot_arca.png");
     this.load.image("bg4", "/assets/background_4.png");
@@ -1143,6 +1144,10 @@ export default class MainGame extends Phaser.Scene {
       this.endPanel.setInteractive();
 
       this.endPanel.on("pointerdown", (pointer) => {
+
+        if (this.isSoundEnable)
+          this.sound.play("click");
+          
         this.cover.visible = false;
         this.endPanel.visible = false;
 
