@@ -862,7 +862,11 @@ export default class MainGame extends Phaser.Scene {
 
         if (this.isPort) this.headBalance.visible = false;
 
-        if (this.activeRoad < 7) this.chicken.play("idle");
+        if (this.activeRoad < 7) 
+        {
+          this.chicken.play("idle");
+          this.startMoneyEffect();
+        }
         else {
 
           this.startMoneyEffect();
